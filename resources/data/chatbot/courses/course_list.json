@@ -1,0 +1,727 @@
+{
+  "courses": [
+    {
+      "id": 6,
+      "course_code": "158352",
+      "course_name": "AI生成影音行銷與直播技巧實戰班",
+      "full_name": "待業-1141128 AI生成影音行銷與直播技巧實戰班",
+      "type": "unemployed",
+      "featured": 1,
+      "schedule": {
+        "start_date": "2025-11-28",
+        "end_date": "2026-01-30",
+        "class_time": "週一至週五，上午9:00～下午17:00",
+        "total_hours": 300,
+        "enrollment_deadline": "2025-11-18 17:30",
+        "interview_date": "2025-11-18 13:00"
+      },
+      "fee": {
+        "amount": "政府補助100%",
+        "note": "一般國民、未具特定對象身分且參加工/農/漁會勞工保險者，需自行負擔20%"
+      },
+      "enrollment": {
+        "capacity": 30,
+        "requirements": "15歲以上失業者，具工作意願；身心障礙者優先"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）",
+        "map_url": ""
+      },
+      "content": "涵蓋影像編修、AI生成式設計、商品視覺化、短影音製作、社群經營、直播企劃與平台策略等22個教學單元，總計約290小時專業課程。招生人數30人，15歲以上失業者具工作意願者皆可報名，身心障礙者優先錄取。",
+      "url": "https://www.hongyu.goblinlab.org/courses/6",
+      "image_url": "/images/courses/course_6.jpg",
+      "keywords": ["AI", "影音", "行銷", "直播", "短影音", "社群經營", "影像編修"],
+      "priority": 1,
+      "related_questions": [
+        "報名截止時間",
+        "上課地點",
+        "課程內容詳情",
+        "如何報名",
+        "補助資格確認"
+      ]
+    },
+    {
+      "id": 12,
+      "course_code": "167567",
+      "course_name": "PMP專案管理實務班",
+      "full_name": "產投-114/12/28(週日)PMP專案管理實務班",
+      "type": "employed",
+      "featured": 1,
+      "schedule": {
+        "start_date": "2025-12-28",
+        "end_date": "2026-02-08",
+        "class_time": "每週日，09:00-17:00",
+        "total_hours": 47,
+        "enrollment_period": "2025/11/28 12:00 ~ 2025/12/25 18:00"
+      },
+      "fee": {
+        "amount": "8,930元",
+        "payment_method": "報名時須繳全額（現金或轉帳，不接受刷卡）",
+        "subsidy_capacity": 28,
+        "note": "結訓後可申請80%補助"
+      },
+      "enrollment": {
+        "requirements": "國中以上、年滿15歲、電腦基本操作能力"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）"
+      },
+      "content": "共47小時課程，涵蓋專案管理整體架構（PMBOK第七版）、商業分析與使用者故事、專案啟動與利害關係人管理、專案規劃目標設定與關鍵行動、成本預算與實獲值管理、品質工具風險分析與採購分析、微軟Project與PowerPoint應用、PMP考試複習等內容。適合想考取PMP證照或提升專案管理能力的在職人員。",
+      "url": "https://www.hongyu.goblinlab.org/courses/12",
+      "image_url": "/images/courses/course_12.jpg",
+      "keywords": ["PMP", "專案管理", "PMBOK", "Project", "管理實務"],
+      "priority": 2,
+      "related_questions": [
+        "報名期間",
+        "上課地點",
+        "課程費用",
+        "補助資訊",
+        "報名方式"
+      ]
+    },
+    {
+      "id": 15,
+      "course_code": "158401",
+      "course_name": "Python數據分析與AI應用實戰班",
+      "full_name": "待業-1141202 Python數據分析與AI應用實戰班",
+      "type": "unemployed",
+      "featured": 1,
+      "schedule": {
+        "start_date": "2025-12-02",
+        "end_date": "2026-02-15",
+        "class_time": "週一至週五，上午9:00～下午17:00",
+        "total_hours": 320,
+        "enrollment_deadline": "2025-11-22 17:30",
+        "interview_date": "2025-11-22 14:00"
+      },
+      "fee": {
+        "amount": "政府補助100%",
+        "note": "一般國民、未具特定對象身分且參加工/農/漁會勞工保險者，需自行負擔20%"
+      },
+      "enrollment": {
+        "capacity": 30,
+        "requirements": "15歲以上失業者，具基本電腦操作能力"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）",
+        "map_url": ""
+      },
+      "content": "從Python基礎語法開始，學習Pandas、NumPy數據處理，Matplotlib視覺化，進階到機器學習（Scikit-learn）、深度學習（TensorFlow）、自然語言處理、AI模型部署等完整技能。適合想轉職AI領域的學員。",
+      "url": "https://www.hongyu.goblinlab.org/courses/15",
+      "image_url": "/images/courses/course_15.jpg",
+      "keywords": ["Python", "數據分析", "AI", "機器學習", "深度學習", "TensorFlow"],
+      "priority": 1,
+      "related_questions": [
+        "報名截止時間",
+        "需要什麼基礎",
+        "課程內容詳情",
+        "就業輔導",
+        "補助資格確認"
+      ]
+    },
+    {
+      "id": 18,
+      "course_name": "全端網頁設計與開發實戰班",
+      "full_name": "待業-1150105 全端網頁設計與開發實戰班",
+      "type": "unemployed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2026-01-05",
+        "end_date": "2026-03-20",
+        "class_time": "週一至週五，上午9:00～下午17:00",
+        "total_hours": 340,
+        "enrollment_deadline": "2025-12-20 17:30",
+        "interview_date": "2025-12-20 14:00"
+      },
+      "fee": {
+        "amount": "政府補助100%",
+        "note": "一般國民需自行負擔20%"
+      },
+      "enrollment": {
+        "capacity": 30,
+        "requirements": "15歲以上失業者，具工作意願"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）",
+        "map_url": ""
+      },
+      "content": "涵蓋HTML5、CSS3、JavaScript、React、Node.js、MySQL數據庫、Git版本控制、RWD響應式設計、前後端整合等完整全端開發技能。包含實作專案，培養即戰力。",
+      "url": "https://www.hongyu.goblinlab.org/courses/18",
+      "image_url": "/images/courses/course_18.jpg",
+      "keywords": ["網頁設計", "全端開發", "React", "Node.js", "前端", "後端"],
+      "priority": 3,
+      "related_questions": [
+        "報名截止時間",
+        "需要程式基礎嗎",
+        "課程內容詳情",
+        "就業輔導"
+      ]
+    },
+    {
+      "id": 21,
+      "course_name": "UI/UX設計與使用者體驗實戰班",
+      "full_name": "待業-1141215 UI/UX設計與使用者體驗實戰班",
+      "type": "unemployed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2025-12-15",
+        "end_date": "2026-02-28",
+        "class_time": "週一至週五，上午9:00～下午17:00",
+        "total_hours": 300,
+        "enrollment_deadline": "2025-12-05 17:30",
+        "interview_date": "2025-12-05 13:00"
+      },
+      "fee": {
+        "amount": "政府補助100%",
+        "note": "一般國民需自行負擔20%"
+      },
+      "enrollment": {
+        "capacity": 30,
+        "requirements": "15歲以上失業者，對設計有興趣"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）",
+        "map_url": ""
+      },
+      "content": "學習Figma、Adobe XD設計工具，使用者研究方法、資訊架構、線框圖、原型設計、視覺設計、設計系統建立、可用性測試等完整UI/UX設計流程。適合想成為產品設計師的學員。",
+      "url": "https://www.hongyu.goblinlab.org/courses/21",
+      "image_url": "/images/courses/course_21.jpg",
+      "keywords": ["UI設計", "UX設計", "Figma", "使用者體驗", "原型設計"],
+      "priority": 4,
+      "related_questions": [
+        "報名截止時間",
+        "需要美術基礎嗎",
+        "學習工具",
+        "作品集輔導"
+      ]
+    },
+    {
+      "id": 24,
+      "course_name": "數位行銷與電商經營實戰班",
+      "full_name": "待業-1150110 數位行銷與電商經營實戰班",
+      "type": "unemployed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2026-01-10",
+        "end_date": "2026-03-15",
+        "class_time": "週一至週五，上午9:00～下午17:00",
+        "total_hours": 280,
+        "enrollment_deadline": "2025-12-28 17:30",
+        "interview_date": "2025-12-28 14:00"
+      },
+      "fee": {
+        "amount": "政府補助100%",
+        "note": "一般國民需自行負擔20%"
+      },
+      "enrollment": {
+        "capacity": 30,
+        "requirements": "15歲以上失業者"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）",
+        "map_url": ""
+      },
+      "content": "涵蓋Google Ads、Facebook廣告、SEO、社群經營、內容行銷、電商平台操作（蝦皮、Momo）、數據分析、顧客關係管理等完整數位行銷與電商經營技能。",
+      "url": "https://www.hongyu.goblinlab.org/courses/24",
+      "image_url": "/images/courses/course_24.jpg",
+      "keywords": ["數位行銷", "電商", "Google Ads", "Facebook廣告", "SEO", "社群行銷"],
+      "priority": 5,
+      "related_questions": [
+        "報名截止時間",
+        "課程內容詳情",
+        "實作案例",
+        "就業方向"
+      ]
+    },
+    {
+      "id": 27,
+      "course_name": "行動APP開發實務班(Android)",
+      "full_name": "待業-1141220 行動APP開發實務班(Android)",
+      "type": "unemployed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2025-12-20",
+        "end_date": "2026-03-05",
+        "class_time": "週一至週五，上午9:00～下午17:00",
+        "total_hours": 330,
+        "enrollment_deadline": "2025-12-10 17:30",
+        "interview_date": "2025-12-10 14:00"
+      },
+      "fee": {
+        "amount": "政府補助100%",
+        "note": "一般國民需自行負擔20%"
+      },
+      "enrollment": {
+        "capacity": 30,
+        "requirements": "15歲以上失業者，具基本程式概念"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）",
+        "map_url": ""
+      },
+      "content": "學習Kotlin程式語言、Android Studio開發環境、UI設計、資料儲存、網路API串接、Firebase整合、Google Play上架流程等完整Android APP開發技能。包含多個實作專案。",
+      "url": "https://www.hongyu.goblinlab.org/courses/27",
+      "image_url": "/images/courses/course_27.jpg",
+      "keywords": ["Android", "APP開發", "Kotlin", "行動開發", "Firebase"],
+      "priority": 6,
+      "related_questions": [
+        "報名截止時間",
+        "需要程式基礎嗎",
+        "開發環境",
+        "作品輔導"
+      ]
+    },
+    {
+      "id": 30,
+      "course_name": "雲端技術與DevOps實戰班",
+      "full_name": "待業-1150115 雲端技術與DevOps實戰班",
+      "type": "unemployed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2026-01-15",
+        "end_date": "2026-03-25",
+        "class_time": "週一至週五，上午9:00～下午17:00",
+        "total_hours": 310,
+        "enrollment_deadline": "2026-01-05 17:30",
+        "interview_date": "2026-01-05 14:00"
+      },
+      "fee": {
+        "amount": "政府補助100%",
+        "note": "一般國民需自行負擔20%"
+      },
+      "enrollment": {
+        "capacity": 30,
+        "requirements": "15歲以上失業者，具Linux基礎"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）",
+        "map_url": ""
+      },
+      "content": "涵蓋AWS雲端服務、Docker容器化、Kubernetes編排、CI/CD持續整合、Terraform自動化部署、監控與日誌管理、雲端安全等完整DevOps技能。適合想成為雲端工程師的學員。",
+      "url": "https://www.hongyu.goblinlab.org/courses/30",
+      "image_url": "/images/courses/course_30.jpg",
+      "keywords": ["雲端", "DevOps", "AWS", "Docker", "Kubernetes", "CI/CD"],
+      "priority": 7,
+      "related_questions": [
+        "報名截止時間",
+        "需要什麼基礎",
+        "證照輔導",
+        "就業方向"
+      ]
+    },
+    {
+      "id": 33,
+      "course_name": "資訊安全與網路防護實戰班",
+      "full_name": "待業-1150120 資訊安全與網路防護實戰班",
+      "type": "unemployed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2026-01-20",
+        "end_date": "2026-03-30",
+        "class_time": "週一至週五，上午9:00～下午17:00",
+        "total_hours": 300,
+        "enrollment_deadline": "2026-01-10 17:30",
+        "interview_date": "2026-01-10 14:00"
+      },
+      "fee": {
+        "amount": "政府補助100%",
+        "note": "一般國民需自行負擔20%"
+      },
+      "enrollment": {
+        "capacity": 30,
+        "requirements": "15歲以上失業者，具網路基礎知識"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）",
+        "map_url": ""
+      },
+      "content": "學習網路安全基礎、滲透測試、漏洞掃描、防火牆配置、入侵偵測系統、資安事件應變、OWASP Top 10、資安法規與稽核等完整資訊安全技能。",
+      "url": "https://www.hongyu.goblinlab.org/courses/33",
+      "image_url": "/images/courses/course_33.jpg",
+      "keywords": ["資訊安全", "網路安全", "滲透測試", "資安", "防護"],
+      "priority": 8,
+      "related_questions": [
+        "報名截止時間",
+        "需要什麼基礎",
+        "證照輔導",
+        "就業方向"
+      ]
+    },
+    {
+      "id": 36,
+      "course_name": "大數據分析與商業智能實戰班",
+      "full_name": "待業-1150125 大數據分析與商業智能實戰班",
+      "type": "unemployed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2026-01-25",
+        "end_date": "2026-04-05",
+        "class_time": "週一至週五，上午9:00～下午17:00",
+        "total_hours": 320,
+        "enrollment_deadline": "2026-01-15 17:30",
+        "interview_date": "2026-01-15 14:00"
+      },
+      "fee": {
+        "amount": "政府補助100%",
+        "note": "一般國民需自行負擔20%"
+      },
+      "enrollment": {
+        "capacity": 30,
+        "requirements": "15歲以上失業者，具基本統計概念"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）",
+        "map_url": ""
+      },
+      "content": "涵蓋SQL數據查詢、Power BI視覺化、Tableau商業分析、大數據處理（Hadoop、Spark）、數據倉儲、ETL流程、預測模型建立等完整商業智能技能。",
+      "url": "https://www.hongyu.goblinlab.org/courses/36",
+      "image_url": "/images/courses/course_36.jpg",
+      "keywords": ["大數據", "商業智能", "Power BI", "Tableau", "數據分析"],
+      "priority": 9,
+      "related_questions": [
+        "報名截止時間",
+        "需要什麼基礎",
+        "課程內容",
+        "就業方向"
+      ]
+    },
+    {
+      "id": 14,
+      "course_name": "Excel商業數據分析實務班",
+      "full_name": "產投-115/01/12(週日)Excel商業數據分析實務班",
+      "type": "employed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2026-01-12",
+        "end_date": "2026-02-23",
+        "class_time": "每週日，09:00-16:00",
+        "total_hours": 36,
+        "enrollment_period": "2025/12/10 12:00 ~ 2026/01/09 18:00"
+      },
+      "fee": {
+        "amount": "6,840元",
+        "payment_method": "報名時須繳全額（現金或轉帳，不接受刷卡）",
+        "subsidy_capacity": 28,
+        "note": "結訓後可申請80%補助"
+      },
+      "enrollment": {
+        "requirements": "國中以上、年滿15歲"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）"
+      },
+      "content": "學習Excel進階函數、數據透視表、圖表製作、巨集與VBA自動化、商業報表設計、財務分析、銷售數據分析等實用技能。適合需要提升辦公室效率的在職人員。",
+      "url": "https://www.hongyu.goblinlab.org/courses/14",
+      "image_url": "/images/courses/course_14.jpg",
+      "keywords": ["Excel", "數據分析", "辦公室", "VBA", "數據透視表"],
+      "priority": 3,
+      "related_questions": [
+        "報名期間",
+        "上課地點",
+        "課程費用",
+        "補助資訊"
+      ]
+    },
+    {
+      "id": 16,
+      "course_name": "Google廣告投放與優化實務班",
+      "full_name": "產投-115/01/18(週六)Google廣告投放與優化實務班",
+      "type": "employed",
+      "featured": 1,
+      "schedule": {
+        "start_date": "2026-01-18",
+        "end_date": "2026-03-01",
+        "class_time": "每週六，09:00-17:00",
+        "total_hours": 42,
+        "enrollment_period": "2025/12/15 12:00 ~ 2026/01/15 18:00"
+      },
+      "fee": {
+        "amount": "7,980元",
+        "payment_method": "報名時須繳全額（現金或轉帳，不接受刷卡）",
+        "subsidy_capacity": 28,
+        "note": "結訓後可申請80%補助"
+      },
+      "enrollment": {
+        "requirements": "國中以上、年滿15歲、具基本網路操作能力"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）"
+      },
+      "content": "完整學習Google Ads搜尋廣告、多媒體廣告、影片廣告、購物廣告等各類型廣告操作，包含關鍵字研究、廣告文案撰寫、競價策略、轉換追蹤、數據分析與優化等實務技能。適合行銷人員、電商經營者。",
+      "url": "https://www.hongyu.goblinlab.org/courses/16",
+      "image_url": "/images/courses/course_16.jpg",
+      "keywords": ["Google Ads", "廣告投放", "數位行銷", "關鍵字廣告", "廣告優化"],
+      "priority": 2,
+      "related_questions": [
+        "報名期間",
+        "課程費用",
+        "實作案例",
+        "補助資訊"
+      ]
+    },
+    {
+      "id": 19,
+      "course_name": "JavaScript與前端框架應用班",
+      "full_name": "產投-115/02/15(週六)JavaScript與前端框架應用班",
+      "type": "employed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2026-02-15",
+        "end_date": "2026-03-29",
+        "class_time": "每週六，09:00-17:00",
+        "total_hours": 36,
+        "enrollment_period": "2026/01/15 12:00 ~ 2026/02/12 18:00"
+      },
+      "fee": {
+        "amount": "6,840元",
+        "payment_method": "報名時須繳全額（現金或轉帳，不接受刷卡）",
+        "subsidy_capacity": 28,
+        "note": "結訓後可申請80%補助"
+      },
+      "enrollment": {
+        "requirements": "國中以上、年滿15歲、具HTML/CSS基礎"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）"
+      },
+      "content": "深入學習JavaScript ES6+語法、DOM操作、非同步處理、Vue.js或React框架應用、元件開發、狀態管理、API串接等前端開發技能。適合想提升前端開發能力的在職工程師。",
+      "url": "https://www.hongyu.goblinlab.org/courses/19",
+      "image_url": "/images/courses/course_19.jpg",
+      "keywords": ["JavaScript", "前端開發", "Vue.js", "React", "ES6"],
+      "priority": 4,
+      "related_questions": [
+        "報名期間",
+        "需要什麼基礎",
+        "課程內容",
+        "補助資訊"
+      ]
+    },
+    {
+      "id": 22,
+      "course_name": "社群媒體行銷與內容經營班",
+      "full_name": "產投-115/02/22(週六)社群媒體行銷與內容經營班",
+      "type": "employed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2026-02-22",
+        "end_date": "2026-04-05",
+        "class_time": "每週六，09:00-16:00",
+        "total_hours": 36,
+        "enrollment_period": "2026/01/20 12:00 ~ 2026/02/19 18:00"
+      },
+      "fee": {
+        "amount": "6,840元",
+        "payment_method": "報名時須繳全額（現金或轉帳，不接受刷卡）",
+        "subsidy_capacity": 28,
+        "note": "結訓後可申請80%補助"
+      },
+      "enrollment": {
+        "requirements": "國中以上、年滿15歲"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）"
+      },
+      "content": "學習Facebook、Instagram、LINE官方帳號等社群平台經營策略，包含內容企劃、視覺設計、文案撰寫、社群廣告投放、粉絲互動、數據分析等完整社群行銷技能。",
+      "url": "https://www.hongyu.goblinlab.org/courses/22",
+      "image_url": "/images/courses/course_22.jpg",
+      "keywords": ["社群行銷", "Facebook", "Instagram", "內容行銷", "社群經營"],
+      "priority": 5,
+      "related_questions": [
+        "報名期間",
+        "課程內容",
+        "實作案例",
+        "補助資訊"
+      ]
+    },
+    {
+      "id": 25,
+      "course_name": "人工智能ChatGPT應用實務班",
+      "full_name": "產投-115/03/01(週六)人工智能ChatGPT應用實務班",
+      "type": "employed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2026-03-01",
+        "end_date": "2026-03-29",
+        "class_time": "每週六，09:00-16:00",
+        "total_hours": 24,
+        "enrollment_period": "2026/02/01 12:00 ~ 2026/02/26 18:00"
+      },
+      "fee": {
+        "amount": "4,560元",
+        "payment_method": "報名時須繳全額（現金或轉帳，不接受刷卡）",
+        "subsidy_capacity": 28,
+        "note": "結訓後可申請80%補助"
+      },
+      "enrollment": {
+        "requirements": "國中以上、年滿15歲"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）"
+      },
+      "content": "學習ChatGPT與AI工具應用於工作流程優化，包含Prompt工程、文案生成、數據分析、程式輔助、簡報製作、客服應用等實用場景。提升職場競爭力與工作效率。",
+      "url": "https://www.hongyu.goblinlab.org/courses/25",
+      "image_url": "/images/courses/course_25.jpg",
+      "keywords": ["ChatGPT", "AI應用", "Prompt", "人工智能", "工作效率"],
+      "priority": 6,
+      "related_questions": [
+        "報名期間",
+        "課程內容",
+        "適合對象",
+        "補助資訊"
+      ]
+    },
+    {
+      "id": 28,
+      "course_name": "Photoshop影像處理與設計實務班",
+      "full_name": "產投-115/03/08(週六)Photoshop影像處理與設計實務班",
+      "type": "employed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2026-03-08",
+        "end_date": "2026-04-12",
+        "class_time": "每週六，09:00-16:00",
+        "total_hours": 30,
+        "enrollment_period": "2026/02/05 12:00 ~ 2026/03/05 18:00"
+      },
+      "fee": {
+        "amount": "5,700元",
+        "payment_method": "報名時須繳全額（現金或轉帳，不接受刷卡）",
+        "subsidy_capacity": 28,
+        "note": "結訓後可申請80%補助"
+      },
+      "enrollment": {
+        "requirements": "國中以上、年滿15歲、具基本電腦操作能力"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）"
+      },
+      "content": "從Photoshop基礎操作到進階技巧，學習影像編修、去背、合成、色彩調整、濾鏡應用、文字設計、Banner製作、社群圖文設計等實用技能。適合行銷、設計相關人員。",
+      "url": "https://www.hongyu.goblinlab.org/courses/28",
+      "image_url": "/images/courses/course_28.jpg",
+      "keywords": ["Photoshop", "影像處理", "平面設計", "修圖", "視覺設計"],
+      "priority": 7,
+      "related_questions": [
+        "報名期間",
+        "需要設計基礎嗎",
+        "課程內容",
+        "補助資訊"
+      ]
+    },
+    {
+      "id": 31,
+      "course_name": "SQL資料庫管理與應用實務班",
+      "full_name": "產投-115/03/15(週六)SQL資料庫管理與應用實務班",
+      "type": "employed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2026-03-15",
+        "end_date": "2026-04-26",
+        "class_time": "每週六，09:00-16:00",
+        "total_hours": 36,
+        "enrollment_period": "2026/02/10 12:00 ~ 2026/03/12 18:00"
+      },
+      "fee": {
+        "amount": "6,840元",
+        "payment_method": "報名時須繳全額（現金或轉帳，不接受刷卡）",
+        "subsidy_capacity": 28,
+        "note": "結訓後可申請80%補助"
+      },
+      "enrollment": {
+        "requirements": "國中以上、年滿15歲、具基本資料庫概念"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）"
+      },
+      "content": "學習MySQL/SQL Server資料庫管理，包含SQL語法、資料表設計、查詢優化、索引建立、預存程序、觸發器、資料備份與還原、效能調校等實務技能。",
+      "url": "https://www.hongyu.goblinlab.org/courses/31",
+      "image_url": "/images/courses/course_31.jpg",
+      "keywords": ["SQL", "資料庫", "MySQL", "資料庫管理", "查詢優化"],
+      "priority": 8,
+      "related_questions": [
+        "報名期間",
+        "需要什麼基礎",
+        "課程內容",
+        "補助資訊"
+      ]
+    },
+    {
+      "id": 34,
+      "course_name": "影片剪輯與後製實務班(Premiere)",
+      "full_name": "產投-115/03/22(週六)影片剪輯與後製實務班",
+      "type": "employed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2026-03-22",
+        "end_date": "2026-05-03",
+        "class_time": "每週六，09:00-16:00",
+        "total_hours": 36,
+        "enrollment_period": "2026/02/20 12:00 ~ 2026/03/19 18:00"
+      },
+      "fee": {
+        "amount": "6,840元",
+        "payment_method": "報名時須繳全額（現金或轉帳，不接受刷卡）",
+        "subsidy_capacity": 28,
+        "note": "結訓後可申請80%補助"
+      },
+      "enrollment": {
+        "requirements": "國中以上、年滿15歲"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）"
+      },
+      "content": "學習Adobe Premiere Pro影片剪輯軟體，包含素材管理、剪輯技巧、轉場效果、字幕製作、音效處理、色彩校正、輸出設定等完整影片製作流程。適合影音創作者、行銷人員。",
+      "url": "https://www.hongyu.goblinlab.org/courses/34",
+      "image_url": "/images/courses/course_34.jpg",
+      "keywords": ["影片剪輯", "Premiere", "後製", "影音製作", "短影音"],
+      "priority": 9,
+      "related_questions": [
+        "報名期間",
+        "需要剪輯基礎嗎",
+        "課程內容",
+        "補助資訊"
+      ]
+    },
+    {
+      "id": 37,
+      "course_name": "LINE官方帳號經營與行銷應用班",
+      "full_name": "產投-115/03/29(週六)LINE官方帳號經營與行銷應用班",
+      "type": "employed",
+      "featured": 0,
+      "schedule": {
+        "start_date": "2026-03-29",
+        "end_date": "2026-04-26",
+        "class_time": "每週六，09:00-16:00",
+        "total_hours": 24,
+        "enrollment_period": "2026/02/25 12:00 ~ 2026/03/26 18:00"
+      },
+      "fee": {
+        "amount": "4,560元",
+        "payment_method": "報名時須繳全額（現金或轉帳，不接受刷卡）",
+        "subsidy_capacity": 28,
+        "note": "結訓後可申請80%補助"
+      },
+      "enrollment": {
+        "requirements": "國中以上、年滿15歲"
+      },
+      "location": {
+        "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）"
+      },
+      "content": "完整學習LINE官方帳號經營策略，包含帳號設定、圖文訊息設計、聊天機器人建置、優惠券發送、分眾行銷、數據分析、廣告投放等實用技能。適合中小企業、實體店家。",
+      "url": "https://www.hongyu.goblinlab.org/courses/37",
+      "image_url": "/images/courses/course_37.jpg",
+      "keywords": ["LINE官方帳號", "聊天機器人", "訊息行銷", "分眾行銷", "LINE行銷"],
+      "priority": 10,
+      "related_questions": [
+        "報名期間",
+        "課程內容",
+        "適合對象",
+        "補助資訊"
+      ]
+    }
+  ],
+  "meta": {
+    "total_courses": 20,
+    "last_updated": "2025-10-24",
+    "version": "1.0"
+  }
+}

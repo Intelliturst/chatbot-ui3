@@ -1,0 +1,43 @@
+{
+  "organization": {
+    "name": "虹宇職訓",
+    "full_name": "虹宇桃園職訓中心",
+    "logo_url": "/public/logo.png",
+    "brand_color": "#4F46E5"
+  },
+  "contact": {
+    "phone": {
+      "main": ["03-4227723", "03-4259355", "03-3378075"],
+      "display": "03-4227723",
+      "available_hours": "週一至週五 9:00-18:00"
+    },
+    "email": {
+      "general": "atcd89@hongyu.com.tw",
+      "support": "service@hongyu.com.tw"
+    },
+    "line": {
+      "id": "@ouy9482x",
+      "qrcode_url": "/images/line_qrcode.jpg",
+      "link": "https://line.me/R/ti/p/@ouy9482x"
+    },
+    "address": {
+      "full": "桃園市中壢區復興路46號12樓",
+      "note": "兆豐銀行樓上",
+      "map_url": "https://maps.google.com/?q=桃園市中壢區復興路46號12樓"
+    }
+  },
+  "service_hours": {
+    "weekdays": "週一至週五 9:00-18:00",
+    "weekend": "週六日及國定假日休息",
+    "note": "如有緊急事項，可透過LINE留言，我們會盡快回覆"
+  },
+  "staff": {
+    "course_inquiry": ["林小姐", "何小姐"],
+    "subsidy_inquiry": ["李小姐", "陳小姐"],
+    "general_inquiry": ["客服團隊"]
+  },
+  "response_template": {
+    "contact_info": "📞 聯絡方式\n\n電話：{phone}\n營業時間：{hours}\n\nEmail：{email}\n\nLINE官方：{line}\n\n地址：{address}\n{note}",
+    "urgent": "如有緊急事項，歡迎直接撥打客服電話：{phone}，或加入LINE官方帳號：{line}"
+  }
+}

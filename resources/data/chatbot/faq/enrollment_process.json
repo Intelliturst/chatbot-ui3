@@ -1,0 +1,87 @@
+{
+  "category": "報名流程說明",
+  "employed_process": {
+    "title": "在職課程報名流程",
+    "steps": [
+      {
+        "step": 1,
+        "title": "線上報名",
+        "description": "前往「就業通」網站進行線上報名",
+        "url": "https://www.taiwanjobs.gov.tw"
+      },
+      {
+        "step": 2,
+        "title": "繳交費用",
+        "description": "報名時須繳交全額課程費用（現金或轉帳）",
+        "note": "不接受刷卡"
+      },
+      {
+        "step": 3,
+        "title": "確認開課",
+        "description": "開課前3天會以電話或簡訊通知"
+      },
+      {
+        "step": 4,
+        "title": "準時上課",
+        "description": "請於開課當日準時到場，攜帶身分證件"
+      },
+      {
+        "step": 5,
+        "title": "完成課程",
+        "description": "出席率達80%以上，完成所有作業"
+      },
+      {
+        "step": 6,
+        "title": "申請補助",
+        "description": "結訓後向開課單位申請80%補助",
+        "documents": [
+          "結業證書",
+          "投保證明",
+          "身分證影本",
+          "存摺影本"
+        ]
+      }
+    ]
+  },
+  "unemployed_process": {
+    "title": "待業課程報名流程",
+    "steps": [
+      {
+        "step": 1,
+        "title": "線上/電話報名",
+        "description": "填寫報名表單，提供基本資料",
+        "deadline": "請於報名截止日前完成報名"
+      },
+      {
+        "step": 2,
+        "title": "參加甄試",
+        "description": "依通知時間參加甄試（筆試或面試）",
+        "documents": [
+          "身分證正本",
+          "相關證明文件（如有特定身份）"
+        ]
+      },
+      {
+        "step": 3,
+        "title": "錄取通知",
+        "description": "甄試後3-5個工作天公告錄取名單"
+      },
+      {
+        "step": 4,
+        "title": "報到繳費",
+        "description": "依錄取通知指示完成報到手續",
+        "note": "特定對象可能享有全額補助，僅需自付20%或免費"
+      },
+      {
+        "step": 5,
+        "title": "準時上課",
+        "description": "課程為全日制（週一至週五 9:00-17:00）"
+      },
+      {
+        "step": 6,
+        "title": "取得證書",
+        "description": "出席率達80%以上即可取得結業證書"
+      }
+    ]
+  }
+}

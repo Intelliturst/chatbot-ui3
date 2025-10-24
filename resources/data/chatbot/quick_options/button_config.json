@@ -1,0 +1,83 @@
+{
+  "quick_options": {
+    "main_menu": [
+      {
+        "label": "課程查詢",
+        "icon": "📚",
+        "trigger": "course_inquiry",
+        "description": "查看所有課程資訊"
+      },
+      {
+        "label": "補助諮詢",
+        "icon": "💰",
+        "trigger": "subsidy_inquiry",
+        "description": "了解補助資格與申請"
+      },
+      {
+        "label": "報名流程",
+        "icon": "📝",
+        "trigger": "enrollment_process",
+        "description": "如何報名課程"
+      },
+      {
+        "label": "聯絡客服",
+        "icon": "☎️",
+        "trigger": "contact_service",
+        "description": "獲得真人協助"
+      }
+    ],
+    "course_menu": [
+      {
+        "label": "待業課程",
+        "trigger": "unemployed_courses"
+      },
+      {
+        "label": "在職課程",
+        "trigger": "employed_courses"
+      },
+      {
+        "label": "熱門課程",
+        "trigger": "featured_courses"
+      },
+      {
+        "label": "搜尋課程",
+        "trigger": "search_courses"
+      }
+    ],
+    "subsidy_menu": [
+      {
+        "label": "我是在職者",
+        "trigger": "employed_subsidy"
+      },
+      {
+        "label": "我是待業者",
+        "trigger": "unemployed_subsidy"
+      },
+      {
+        "label": "不確定身份",
+        "trigger": "subsidy_help"
+      }
+    ]
+  },
+  "related_questions": {
+    "course": [
+      "報名截止時間",
+      "上課地點",
+      "課程費用",
+      "補助資訊",
+      "如何報名"
+    ],
+    "subsidy": [
+      "需要什麼文件",
+      "補助多少錢",
+      "何時撥款",
+      "申請流程"
+    ],
+    "enrollment": [
+      "報名方式",
+      "需要準備什麼",
+      "甄試流程",
+      "錄取通知"
+    ]
+  }
+}

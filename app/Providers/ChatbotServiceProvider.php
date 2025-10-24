@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use App\Services\SessionManager;
 use App\Services\OpenAIService;
+use App\Services\RAGService;
 use App\Services\Agents\ClassificationAgent;
 
 class ChatbotServiceProvider extends ServiceProvider
@@ -22,6 +23,11 @@ class ChatbotServiceProvider extends ServiceProvider
         // 註冊 OpenAIService 為單例
         $this->app->singleton(OpenAIService::class, function ($app) {
             return new OpenAIService();
+        });
+
+        // 註冊 RAGService 為單例
+        $this->app->singleton(RAGService::class, function ($app) {
+            return new RAGService();
         });
 
         // 註冊 ClassificationAgent 為單例
