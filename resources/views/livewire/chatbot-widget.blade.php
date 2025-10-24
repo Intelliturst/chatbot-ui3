@@ -111,24 +111,22 @@
                                 <span class="text-xs text-gray-400 mt-2 block">{{ $message['timestamp'] }}</span>
                             </div>
 
-                            {{-- 快速選項按鈕 --}}
-                            @if(!empty($message['quick_options']))
+                            {{-- 快速選項按鈕（僅最後一條訊息顯示，載入時隱藏） --}}
+                            @if($loop->last && !empty($message['quick_options']) && !$isLoading)
                                 <div class="mt-3 flex flex-wrap gap-2">
                                     @foreach($message['quick_options'] as $optionIndex => $option)
                                         <button
                                             wire:click="selectOption('{{ $option }}')"
-                                            class="group relative inline-flex items-center px-4 py-2
-                                                   bg-gradient-to-r from-white to-gray-50
-                                                   hover:from-primary hover:to-primary-dark
-                                                   text-gray-700 hover:text-white
-                                                   rounded-xl text-sm font-medium
+                                            wire:loading.attr="disabled"
+                                            class="group inline-flex items-center px-4 py-2
+                                                   bg-primary text-white rounded-xl text-sm font-medium
+                                                   hover:bg-primary-dark hover:shadow-lg
                                                    transition-all duration-300
-                                                   border-2 border-gray-200 hover:border-primary
-                                                   shadow-sm hover:shadow-md
                                                    transform hover:scale-105 active:scale-95
+                                                   disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
                                                    animate-slide-in-up"
                                             style="animation-delay: {{ $optionIndex * 0.1 }}s">
-                                            <svg class="w-4 h-4 mr-2 opacity-60 group-hover:opacity-100 transition-opacity"
+                                            <svg class="w-4 h-4 mr-2 opacity-80 group-hover:opacity-100 transition-opacity"
                                                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                       d="M9 5l7 7-7 7"></path>
@@ -143,18 +141,24 @@
                 @endif
             @endforeach
 
-            {{-- Loading --}}
+            {{-- AI 思考動畫（對話泡泡設計，無文字） --}}
             @if($isLoading)
                 <div class="flex justify-start animate-fade-in">
+                    {{-- AI 頭像 --}}
                     <div class="w-9 h-9 rounded-full flex-shrink-0 mr-2 shadow-md
                                 bg-gradient-to-br from-primary to-primary-dark p-0.5">
                         <img src="/agent.png" alt="AI助手" class="w-full h-full rounded-full bg-white p-0.5">
                     </div>
-                    <div class="bg-white px-5 py-4 rounded-2xl rounded-tl-md shadow-md border border-gray-100">
+
+                    {{-- 思考動畫泡泡（無文字） --}}
+                    <div class="bg-white px-5 py-4 rounded-2xl rounded-tl-md
+                                shadow-md border border-gray-100">
                         <div class="flex space-x-2">
                             <div class="w-2.5 h-2.5 bg-primary rounded-full animate-bounce"></div>
-                            <div class="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                            <div class="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                            <div class="w-2.5 h-2.5 bg-primary rounded-full animate-bounce"
+                                 style="animation-delay: 0.1s"></div>
+                            <div class="w-2.5 h-2.5 bg-primary rounded-full animate-bounce"
+                                 style="animation-delay: 0.2s"></div>
                         </div>
                     </div>
                 </div>
@@ -166,12 +170,14 @@
             <div class="flex items-end space-x-2">
                 <textarea
                     wire:model.defer="userInput"
+                    wire:loading.attr="disabled"
                     rows="1"
                     placeholder="請輸入您的問題..."
                     class="flex-1 px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl
                            focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
                            resize-none text-sm leading-relaxed
-                           hover:border-gray-300 transition-colors"
+                           hover:border-gray-300 transition-colors
+                           disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
                     wire:keydown.enter.prevent="sendMessage"
                     x-data
                     x-on:keydown.enter.prevent="if (!$event.shiftKey) { $wire.call('sendMessage') }"
@@ -183,7 +189,7 @@
                     class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark text-white
                            rounded-xl hover:shadow-lg active:scale-95
                            transition-all duration-300 flex items-center justify-center flex-shrink-0
-                           disabled:opacity-50 disabled:cursor-not-allowed
+                           disabled:opacity-50 disabled:cursor-not-allowed disabled:rotate-0
                            hover:rotate-12">
                     <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
