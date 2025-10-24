@@ -62,13 +62,12 @@
                 $wire.call('sendMessage', message);
             }
         }"
-        x-init="
-            scrollToBottom();
-            $wire.on('message-sent', () => {
-                console.log('message-sent event received');
-                isProcessing = false;
-                setTimeout(() => scrollToBottom(), 100);
-            });
+        x-init="scrollToBottom()"
+        x-on:livewire-message-sent.window="
+            console.log('livewire-message-sent received, isProcessing:', isProcessing);
+            isProcessing = false;
+            console.log('after reset, isProcessing:', isProcessing);
+            setTimeout(() => scrollToBottom(), 100);
         "
         @widget-opened.window="scrollToBottom()"
         @scroll-to-bottom.window="scrollToBottom()"
