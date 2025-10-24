@@ -24,38 +24,39 @@ class HumanServiceAgent extends BaseAgent
         // 理解用戶需求
         $userNeed = $this->understandUserNeed($userMessage);
 
-        $content = "我会為您转接真人客服 ☎️\n\n";
+        $content = "我會為您轉接真人客服 ☎️\n\n";
 
         if ($userNeed) {
             $content .= "**您的需求**：{$userNeed}\n\n";
         }
 
-        $content .= "📞 **聯絡方式**\n\n";
-        $content .= "**電話**：\n";
-        foreach ($serviceInfo['contact']['phone']['main'] as $phone) {
-            $content .= "• {$phone}\n";
-        }
-        $content .= "营业時間：{$serviceInfo['contact']['phone']['available_hours']}\n\n";
+        // 使用 service_info.json 的模板
+        $template = $serviceInfo['response_template']['contact_info'];
 
-        $content .= "**LINE 官方帐号**：\n";
-        $content .= "• ID：{$serviceInfo['contact']['line']['id']}\n";
-        $content .= "• 连结：{$serviceInfo['contact']['line']['link']}\n\n";
+        // 替換模板變數
+        $contactInfo = str_replace(
+            ['{phone}', '{hours}', '{email}', '{line}', '{address}', '{note}'],
+            [
+                $serviceInfo['contact']['phone']['display'],
+                $serviceInfo['service_hours']['weekdays'],
+                $serviceInfo['contact']['email']['general'],
+                $serviceInfo['contact']['line']['id'],
+                $serviceInfo['contact']['address']['full'],
+                $serviceInfo['contact']['address']['note']
+            ],
+            $template
+        );
 
-        $content .= "**Email**：\n";
-        $content .= "• {$serviceInfo['contact']['email']['general']}\n\n";
+        $content .= $contactInfo;
 
-        $content .= "**地址**：\n";
-        $content .= "{$serviceInfo['contact']['address']['full']}\n";
-        $content .= "({$serviceInfo['contact']['address']['note']})\n\n";
-
-        $content .= "💡 建议：\n";
+        $content .= "\n\n💡 建議：\n";
         $content .= "• 電話聯絡最快速\n";
-        $content .= "• LINE 留言我们会尽快回复\n";
-        $content .= "• 欢迎直接到中心洽询";
+        $content .= "• LINE 留言我們會盡快回覆\n";
+        $content .= "• 歡迎直接到中心洽詢";
 
         return [
             'content' => $content,
-            'quick_options' => ['回到主选单', '查看課程', '補助資格']
+            'quick_options' => ['回主選單', '查看課程', '補助資格']
         ];
     }
 

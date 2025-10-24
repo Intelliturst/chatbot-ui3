@@ -9,18 +9,26 @@ class ClassificationAgent extends BaseAgent
      */
     public function handle($userMessage)
     {
-        // 【優先】檢查 Session 上下文 - 處理純數字課程編號
         $lastAction = $this->session->getContext('last_action');
+        $trimmed = trim($userMessage);
 
-        // 如果用戶輸入純數字，且上一個動作是課程相關
-        if (preg_match('/^[0-9]+$/', trim($userMessage)) &&
+        // 【優先 1】純數字 + 課程上下文
+        if (preg_match('/^[0-9]+$/', $trimmed) &&
             in_array($lastAction, ['course_list', 'featured_list', 'search_result'])) {
-            // 直接路由到課程代理，不進行 OpenAI 分類（更快更準）
-            $courseAgent = app(\App\Services\Agents\CourseAgent::class);
-            return $courseAgent->handle($userMessage);
+            // 直接路由到課程代理（用戶選擇課程編號）
+            return $this->handleCourse($trimmed);
         }
 
-        // 分類用戶意圖
+        // 【優先 2】上下文關鍵字（更多、剩下的、同上）
+        if (preg_match('/(更多|剩下|還有|繼續|同上)/ui', $trimmed)) {
+            if (in_array($lastAction, ['course_list', 'search_result', 'featured_list'])) {
+                // 用戶想看更多課程
+                return $this->handleCourse($trimmed);
+            }
+            // 其他情況繼續讓 OpenAI 分類
+        }
+
+        // 【其他情況】使用 OpenAI 分類
         $category = $this->classifyIntent($userMessage);
 
         // 根據分類處理
@@ -47,7 +55,7 @@ class ClassificationAgent extends BaseAgent
                 return $this->handleHumanService($userMessage);
 
             case 9: // 未知/其他
-                return $this->handleUnknown($userMessage);
+                return $this->handleUnknownFromJSON();
 
             default:
                 return $this->errorResponse();
@@ -166,35 +174,55 @@ EOT;
         }
 
         // 備用回應（如果 JSON 讀取失敗）
+        $mainMenu = $this->getQuickOptionsFromConfig('main_menu');
         return [
             'content' => "您好！我是虹宇職訓的智能客服小幫手 👋\n\n請問有什麼可以幫您的呢？",
-            'quick_options' => ['查看課程清單', '補助資格確認', '如何報名', '聯絡客服']
+            'quick_options' => $mainMenu
         ];
     }
 
     /**
-     * 處理未知問題
+     * 處理未知問題（使用 JSON 配置）
      */
-    protected function handleUnknown($userMessage)
+    protected function handleUnknownFromJSON()
     {
-        // 使用 OpenAI 嘗試回答
-        $response = $this->generateResponse($userMessage, [
-            '回答規則' => '請簡潔回答用戶問題，如果與虹宇職訓、課程、補助無關，請禮貌地引導用戶詢問相關問題。'
-        ]);
+        $unknownData = $this->rag->getDefaultResponse('unknown');
 
-        if ($response) {
+        if ($unknownData) {
             return [
-                'content' => $response . "\n\n💡 如果您想了解課程或補助相關資訊，我可以為您提供更詳細的協助！",
-                'quick_options' => ['查看課程清單', '補助資格確認', '常見問題']
+                'content' => $unknownData['default'] ?? '抱歉，我無法理解您的問題。',
+                'quick_options' => $unknownData['quick_options'] ?? []
             ];
         }
 
+        // 備用回應（如果 JSON 讀取失敗）
+        $mainMenu = $this->getQuickOptionsFromConfig('main_menu');
         return [
             'content' => "抱歉，我不太確定如何回答這個問題。\n\n不過，我可以協助您：\n• 查詢課程資訊\n• 了解補助資格\n• 報名流程說明\n\n請問您想了解哪方面的資訊呢？",
-            'quick_options' => ['查看課程清單', '補助資格確認', '如何報名', '聯絡客服']
+            'quick_options' => $mainMenu
         ];
     }
 
+    /**
+     * 從 button_config.json 讀取快速選單
+     */
+    protected function getQuickOptionsFromConfig($menuType = 'main_menu')
+    {
+        try {
+            $menuData = $this->rag->getQuickOptions($menuType);
+            if (is_array($menuData) && !empty($menuData)) {
+                // 提取 label 欄位
+                return array_values(array_map(function($item) {
+                    return $item['label'] ?? $item;
+                }, $menuData));
+            }
+        } catch (\Exception $e) {
+            // 讀取失敗，返回預設選項
+        }
+
+        // 預設回應
+        return ['課程查詢', '補助諮詢', '報名流程', '聯絡客服'];
+    }
 
     /**
      * 獲取系統提示詞

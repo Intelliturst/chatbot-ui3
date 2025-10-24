@@ -121,6 +121,16 @@ class RAGService
     }
 
     /**
+     * 獲取完整的課程編號映射
+     *
+     * @return array
+     */
+    public function getCourseMapping()
+    {
+        return $this->loadJSON('courses/course_mapping.json');
+    }
+
+    /**
      * 查詢補助規則
      *
      * @param string $type 'employed' 或 'unemployed'

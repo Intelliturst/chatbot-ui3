@@ -23,6 +23,9 @@ class CourseAgent extends BaseAgent
         $queryType = $this->detectQueryType($userMessage);
 
         switch ($queryType) {
+            case 'pagination':
+                return $this->handlePagination();
+
             case 'list_unemployed':
                 return $this->handleCourseList('unemployed');
 
@@ -48,6 +51,14 @@ class CourseAgent extends BaseAgent
      */
     protected function detectQueryType($message)
     {
+        // 優先檢測分頁請求（更多、剩下的）
+        if (preg_match('/(更多|剩下|還有|繼續)/ui', $message)) {
+            $lastAction = $this->session->getContext('last_action');
+            if (in_array($lastAction, ['course_list', 'search_result', 'featured_list'])) {
+                return 'pagination';
+            }
+        }
+
         if (preg_match('/(待業|失業).*課程|課程.*(待業|失業)/ui', $message)) {
             return 'list_unemployed';
         }
@@ -93,33 +104,13 @@ class CourseAgent extends BaseAgent
             ];
         }
 
-        $content = "📚 **{$typeName}課程清單**\n\n";
-        $content .= "找到 " . count($courses) . " 門課程：\n\n";
-
-        foreach (array_slice($courses, 0, 5) as $index => $course) {
-            $num = $index + 1;
-            $featured = isset($course['featured']) && $course['featured'] ? '⭐ ' : '';
-            $content .= "{$num}. {$featured}{$course['course_name']}\n";
-            $content .= "   時數：{$course['schedule']['total_hours']}小時\n";
-            if (isset($course['schedule']['start_date'])) {
-                $content .= "   開課：{$course['schedule']['start_date']}\n";
-            }
-            $content .= "\n";
-        }
-
-        if (count($courses) > 5) {
-            $content .= "...還有 " . (count($courses) - 5) . " 門課程\n\n";
-        }
-
-        $content .= "💡 請輸入課程編號（1-" . count($courses) . "）查看詳情";
-
-        // 設置 Session 上下文，以便識別後續的純數字輸入
+        // 保存課程列表到 Session
+        $this->session->setContext('current_course_list', $courses);
+        $this->session->setContext('display_offset', 0);  // 重置 offset
         $this->session->setContext('last_action', 'course_list');
 
-        return [
-            'content' => $content,
-            'quick_options' => ['精選課程', '搜尋課程', '補助資格', '如何報名']
-        ];
+        // 使用統一的渲染方法
+        return $this->renderCoursePage($courses, 0, $typeName . '課程清單');
     }
 
     /**
@@ -136,25 +127,13 @@ class CourseAgent extends BaseAgent
             ];
         }
 
-        $content = "⭐ **精選熱門課程**\n\n";
-
-        foreach ($courses as $index => $course) {
-            $num = $index + 1;
-            $typeName = $course['type'] === 'unemployed' ? '待業' : '在職';
-            $content .= "{$num}. {$course['course_name']} ({$typeName})\n";
-            $content .= "   時數：{$course['schedule']['total_hours']}小時\n";
-            $content .= "   特色：" . implode('、', array_slice($course['keywords'], 0, 3)) . "\n\n";
-        }
-
-        $content .= "💡 請輸入編號查看詳情";
-
-        // 設置 Session 上下文
+        // 保存課程列表到 Session
+        $this->session->setContext('current_course_list', $courses);
+        $this->session->setContext('display_offset', 0);  // 重置 offset
         $this->session->setContext('last_action', 'featured_list');
 
-        return [
-            'content' => $content,
-            'quick_options' => ['待業課程', '在職課程', '搜尋課程']
-        ];
+        // 使用統一的渲染方法
+        return $this->renderCoursePage($courses, 0, '精選熱門課程', true);
     }
 
     /**
@@ -181,25 +160,14 @@ class CourseAgent extends BaseAgent
             ];
         }
 
-        $content = "🔍 **搜尋結果：{$keyword}**\n\n";
-        $content .= "找到 " . count($courses) . " 門相關課程：\n\n";
-
-        foreach (array_slice($courses, 0, 5) as $index => $course) {
-            $num = $index + 1;
-            $typeName = $course['type'] === 'unemployed' ? '待業' : '在職';
-            $content .= "{$num}. {$course['course_name']} ({$typeName})\n";
-            $content .= "   時數：{$course['schedule']['total_hours']}小時\n\n";
-        }
-
-        $content .= "💡 請輸入編號查看詳情";
-
-        // 設置 Session 上下文
+        // 保存課程列表和搜尋關鍵字到 Session
+        $this->session->setContext('current_course_list', $courses);
+        $this->session->setContext('display_offset', 0);  // 重置 offset
+        $this->session->setContext('search_keyword', $keyword);
         $this->session->setContext('last_action', 'search_result');
 
-        return [
-            'content' => $content,
-            'quick_options' => ['查看更多', '其他關鍵字', '補助資格']
-        ];
+        // 使用統一的渲染方法
+        return $this->renderCoursePage($courses, 0, "搜尋結果：{$keyword}");
     }
 
     /**
@@ -227,6 +195,8 @@ class CourseAgent extends BaseAgent
         }
 
         $number = (int)$matches[0];
+
+        // 【唯一正確方式】使用全局編號系統
         $courseId = $this->ragService->getCourseIdByNumber($number);
 
         if (!$courseId) {
@@ -326,6 +296,133 @@ class CourseAgent extends BaseAgent
             'content' => "我可以協助您：\n\n1️⃣ 查看待業課程清單\n2️⃣ 查看在職課程清單\n3️⃣ 搜尋特定課程\n4️⃣ 查看精選課程\n\n請问您想了解什麼呢？",
             'quick_options' => ['待業課程', '在職課程', '精選課程', '搜尋課程']
         ];
+    }
+
+    /**
+     * 統一的課程頁面渲染（使用全局編號）
+     */
+    protected function renderCoursePage($courses, $offset = 0, $title = '課程清單', $showFeatured = false)
+    {
+        $pageSize = 5;
+        $totalCourses = count($courses);
+        $coursesToShow = array_slice($courses, $offset, $pageSize);
+
+        $content = "📚 **{$title}**\n\n";
+        $content .= "找到 " . $totalCourses . " 門課程";
+
+        if ($totalCourses > $pageSize) {
+            $currentEnd = min($offset + $pageSize, $totalCourses);
+            $content .= "（顯示 " . ($offset + 1) . "-{$currentEnd} 筆）";
+        }
+        $content .= "：\n\n";
+
+        foreach ($coursesToShow as $course) {
+            // 使用全局編號（從 course_mapping.json）
+            $globalNum = $this->getGlobalNumber($course['id']);
+
+            if ($globalNum === null) {
+                // 如果找不到全局編號，跳過這門課程
+                continue;
+            }
+
+            $featured = isset($course['featured']) && $course['featured'] ? '⭐ ' : '';
+            $typeName = $course['type'] === 'unemployed' ? '待業' : '在職';
+
+            $content .= "{$globalNum}. {$featured}{$course['course_name']}";
+            if ($showFeatured) {
+                $content .= " ({$typeName})";
+            }
+            $content .= "\n";
+            $content .= "   時數：{$course['schedule']['total_hours']}小時\n";
+
+            if (isset($course['schedule']['start_date'])) {
+                $content .= "   開課：{$course['schedule']['start_date']}\n";
+            }
+
+            if ($showFeatured && isset($course['keywords'])) {
+                $content .= "   特色：" . implode('、', array_slice($course['keywords'], 0, 3)) . "\n";
+            }
+
+            $content .= "\n";
+        }
+
+        // 提示文字
+        if ($offset + $pageSize < $totalCourses) {
+            $remaining = $totalCourses - ($offset + $pageSize);
+            $content .= "...還有 {$remaining} 門課程（輸入「更多」繼續查看）\n\n";
+        }
+
+        $content .= "💡 請輸入課程編號查看詳情";
+
+        // 更新 Session offset
+        $this->session->setContext('display_offset', $offset);
+
+        return [
+            'content' => $content,
+            'quick_options' => ['補助資格', '如何報名', '聯絡客服']
+        ];
+    }
+
+    /**
+     * 根據 course_id 查找全局編號
+     * 從 course_mapping.json 的 number_to_id 反向查找
+     */
+    protected function getGlobalNumber($courseId)
+    {
+        try {
+            $mapping = $this->ragService->getCourseMapping();
+            $numberToId = $mapping['number_to_id'] ?? [];
+
+            foreach ($numberToId as $num => $id) {
+                if ($id == $courseId) {
+                    return (int)$num;
+                }
+            }
+        } catch (\Exception $e) {
+            // 如果讀取失敗，返回 null
+            return null;
+        }
+
+        return null;
+    }
+
+    /**
+     * 處理分頁請求（更多、剩下的課程）
+     */
+    protected function handlePagination()
+    {
+        $courseList = $this->session->getContext('current_course_list');
+        $currentOffset = $this->session->getContext('display_offset', 0);
+        $lastAction = $this->session->getContext('last_action');
+
+        if (empty($courseList)) {
+            return [
+                'content' => "沒有找到課程列表，請重新查詢。",
+                'quick_options' => ['待業課程', '在職課程', '精選課程']
+            ];
+        }
+
+        // 計算新的 offset
+        $newOffset = $currentOffset + 5;
+
+        if ($newOffset >= count($courseList)) {
+            return [
+                'content' => "已經顯示所有課程了！\n\n💡 您可以重新搜尋或查看其他類型的課程。",
+                'quick_options' => ['待業課程', '在職課程', '精選課程']
+            ];
+        }
+
+        // 根據 last_action 決定標題
+        $title = '課程清單';
+        if ($lastAction === 'search_result') {
+            $keyword = $this->session->getContext('search_keyword', '');
+            $title = "搜尋結果：{$keyword}";
+        } elseif ($lastAction === 'featured_list') {
+            $title = '精選熱門課程';
+        }
+
+        // 渲染下一頁
+        return $this->renderCoursePage($courseList, $newOffset, $title);
     }
 
     /**

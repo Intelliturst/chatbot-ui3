@@ -19,8 +19,8 @@ class FAQAgent extends BaseAgent
      */
     public function handle($userMessage)
     {
-        // 搜尋FAQ
-        $faqResults = $this->ragService->searchFAQ($userMessage);
+        // 搜尋FAQ（整合 general_faq 和 subsidy_faq）
+        $faqResults = $this->searchAllFAQs($userMessage);
 
         if (!empty($faqResults)) {
             // 找到相关FAQ
@@ -29,6 +29,66 @@ class FAQAgent extends BaseAgent
 
         // 没找到，使用OpenAI结合知识库回答
         return $this->provideGeneralAnswer($userMessage);
+    }
+
+    /**
+     * 搜尋所有 FAQ（整合 general_faq 和 subsidy_faq）
+     */
+    protected function searchAllFAQs($keyword)
+    {
+        // 1. 搜尋 general_faq
+        $generalFAQs = $this->ragService->searchFAQ($keyword);
+
+        // 2. 搜尋 subsidy_faq
+        $subsidyFAQData = $this->ragService->getSubsidyFAQ();
+        $subsidyFAQs = $subsidyFAQData['faqs'] ?? [];
+
+        // 如果有關鍵字，過濾 subsidy FAQ
+        if (!empty($keyword)) {
+            $subsidyFAQs = array_filter($subsidyFAQs, function($faq) use ($keyword) {
+                // 搜尋問題
+                if (stripos($faq['question'], $keyword) !== false) {
+                    return true;
+                }
+                // 搜尋答案
+                if (stripos($faq['answer'], $keyword) !== false) {
+                    return true;
+                }
+                // 搜尋關鍵字
+                if (isset($faq['keywords'])) {
+                    foreach ($faq['keywords'] as $kw) {
+                        if (stripos($kw, $keyword) !== false) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            });
+            $subsidyFAQs = array_values($subsidyFAQs);
+        }
+
+        // 3. 合併兩個來源
+        $allFAQs = array_merge($generalFAQs, $subsidyFAQs);
+
+        // 4. 去重（根據問題）
+        $seen = [];
+        $uniqueFAQs = [];
+        foreach ($allFAQs as $faq) {
+            $question = $faq['question'];
+            if (!isset($seen[$question])) {
+                $seen[$question] = true;
+                $uniqueFAQs[] = $faq;
+            }
+        }
+
+        // 5. 按優先級排序（如果有）
+        usort($uniqueFAQs, function($a, $b) {
+            $priorityA = $a['priority'] ?? 999;
+            $priorityB = $b['priority'] ?? 999;
+            return $priorityA <=> $priorityB;
+        });
+
+        return $uniqueFAQs;
     }
 
     /**
