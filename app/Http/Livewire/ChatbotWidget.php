@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
+use App\Services\SessionManager;
 
 class ChatbotWidget extends Component
 {
@@ -11,14 +12,44 @@ class ChatbotWidget extends Component
     public $userInput = '';
     public $isOpen = false;
     public $isLoading = false;
+    public $sessionInfo = [];
+
+    protected $sessionManager;
 
     /**
      * 組件初始化
      */
     public function mount()
     {
-        // 添加歡迎訊息
-        $this->addWelcomeMessage();
+        $this->sessionManager = app(SessionManager::class);
+
+        // 載入對話歷史
+        $this->loadHistory();
+
+        // 如果是新對話（無歷史記錄），發送歡迎訊息
+        if (empty($this->messages)) {
+            $this->addWelcomeMessage();
+        }
+
+        // 更新 Session 資訊
+        $this->updateSessionInfo();
+    }
+
+    /**
+     * 載入對話歷史
+     */
+    protected function loadHistory()
+    {
+        $history = $this->sessionManager->getHistory();
+
+        $this->messages = array_map(function($msg) {
+            return [
+                'role' => $msg['role'],
+                'content' => $msg['content'],
+                'timestamp' => date('H:i', strtotime($msg['timestamp'])),
+                'quick_options' => []
+            ];
+        }, $history);
     }
 
     /**
@@ -37,7 +68,7 @@ class ChatbotWidget extends Component
         $this->isLoading = true;
 
         // 模擬AI回覆（暫時）
-        $response = "您說：「{$this->userInput}」。這是一個測試回覆，OpenAI 整合將在 Phase 3 完成。";
+        $response = "您說：「{$this->userInput}」。這是一個測試回覆，OpenAI 整合將在 Phase 3 完成。\n\n💡 Session 資訊：已保存 " . count($this->messages) . " 條訊息。";
 
         // 加入AI回覆
         $this->addAssistantMessage($response);
@@ -45,6 +76,9 @@ class ChatbotWidget extends Component
         // 清空輸入
         $this->userInput = '';
         $this->isLoading = false;
+
+        // 更新 Session 資訊
+        $this->updateSessionInfo();
 
         // 滾動到底部
         $this->dispatchBrowserEvent('scroll-to-bottom');
@@ -63,15 +97,35 @@ class ChatbotWidget extends Component
     }
 
     /**
+     * 清除對話記錄
+     */
+    public function clearSession()
+    {
+        $this->sessionManager->clearSession();
+        $this->messages = [];
+        $this->addWelcomeMessage();
+        $this->updateSessionInfo();
+
+        $this->dispatchBrowserEvent('session-cleared', [
+            'message' => '對話記錄已清除'
+        ]);
+    }
+
+    /**
      * 加入用戶訊息
      */
     protected function addUserMessage($content)
     {
-        $this->messages[] = [
+        $message = [
             'role' => 'user',
             'content' => $content,
             'timestamp' => now()->format('H:i')
         ];
+
+        $this->messages[] = $message;
+
+        // 同步保存到 SessionManager
+        $this->sessionManager->addMessage('user', $content);
     }
 
     /**
@@ -79,12 +133,20 @@ class ChatbotWidget extends Component
      */
     protected function addAssistantMessage($content, $quickOptions = [])
     {
-        $this->messages[] = [
+        $message = [
             'role' => 'assistant',
             'content' => $content,
             'timestamp' => now()->format('H:i'),
             'quick_options' => $quickOptions
         ];
+
+        $this->messages[] = $message;
+
+        // 同步保存到 SessionManager
+        $this->sessionManager->addMessage('assistant', $content);
+
+        // 保存上下文
+        $this->sessionManager->setContext('last_response', $content);
     }
 
     /**
@@ -105,6 +167,14 @@ class ChatbotWidget extends Component
     {
         $this->userInput = $option;
         $this->sendMessage();
+    }
+
+    /**
+     * 更新 Session 資訊
+     */
+    protected function updateSessionInfo()
+    {
+        $this->sessionInfo = $this->sessionManager->getSessionInfo();
     }
 
     /**
