@@ -21,6 +21,7 @@
     <div
         x-data="{
             isProcessing: false,
+            userInput: '',
             scrollToBottom() {
                 setTimeout(() => {
                     this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight;
@@ -34,6 +35,17 @@
                     .replace(/^(\d+)\. (.*?)$/gm, '<li class=\'ml-4 list-decimal\'>$2</li>')
                     .replace(/\n/g, '<br>');
                 return formatted;
+            },
+            sendMessage() {
+                if (!this.userInput.trim()) return;
+
+                this.isProcessing = true;
+                const message = this.userInput;
+                this.userInput = '';
+
+                $wire.set('userInput', message).then(() => {
+                    $wire.call('sendMessage');
+                });
             }
         }"
         x-init="
@@ -124,9 +136,8 @@
                                 <div class="mt-3 flex flex-wrap gap-2" x-show="!isProcessing">
                                     @foreach($message['quick_options'] as $optionIndex => $option)
                                         <button
-                                            wire:click="selectOption('{{ $option }}')"
-                                            x-on:click="isProcessing = true"
-                                            wire:loading.attr="disabled"
+                                            x-on:click="userInput = '{{ $option }}'; sendMessage();"
+                                            x-bind:disabled="isProcessing"
                                             class="group inline-flex items-center px-4 py-2
                                                    bg-primary text-white rounded-xl text-sm font-medium
                                                    hover:bg-primary-dark hover:shadow-lg
@@ -183,8 +194,8 @@
         <div class="p-4 bg-white border-t-2 border-gray-100 rounded-b-none md:rounded-b-3xl flex-shrink-0 shadow-inner">
             <div class="flex items-end space-x-2">
                 <textarea
-                    wire:model="userInput"
-                    wire:loading.attr="disabled"
+                    x-model="userInput"
+                    x-bind:disabled="isProcessing"
                     rows="1"
                     placeholder="請輸入您的問題..."
                     class="flex-1 px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl
@@ -192,25 +203,12 @@
                            resize-none text-sm leading-relaxed
                            hover:border-gray-300 transition-colors
                            disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
-                    wire:keydown.enter.prevent="sendMessage"
-                    x-data="{
-                        handleEnter(event) {
-                            if (!event.shiftKey) {
-                                event.preventDefault();
-                                isProcessing = true;
-                                $wire.call('sendMessage').then(() => {
-                                    isProcessing = false;
-                                });
-                            }
-                        }
-                    }"
-                    x-on:keydown.enter="handleEnter($event)"
+                    x-on:keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); sendMessage(); }"
                 ></textarea>
 
                 <button
-                    wire:click="sendMessage"
-                    wire:loading.attr="disabled"
-                    x-on:click="isProcessing = true"
+                    x-on:click="sendMessage()"
+                    x-bind:disabled="isProcessing"
                     class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark text-white
                            rounded-xl hover:shadow-lg active:scale-95
                            transition-all duration-300 flex items-center justify-center flex-shrink-0
