@@ -94,6 +94,7 @@ class ChatbotWidget extends Component
         }
 
         // 加入用戶訊息
+        \Log::info('Adding user message');
         $this->addUserMessage($userMessage);
 
         // 清空輸入
@@ -101,13 +102,17 @@ class ChatbotWidget extends Component
 
         try {
             // 調用分類代理處理
+            \Log::info('Calling ClassificationAgent');
             $response = $this->getClassificationAgent()->handle($userMessage);
+            \Log::info('ClassificationAgent response received', ['has_content' => !empty($response['content'])]);
 
             // 加入AI回覆
+            \Log::info('Adding assistant message');
             $this->addAssistantMessage(
                 $response['content'],
                 $response['quick_options'] ?? []
             );
+            \Log::info('Assistant message added successfully');
 
         } catch (\Exception $e) {
             \Log::error('Chatbot Error: ' . $e->getMessage());
@@ -121,13 +126,16 @@ class ChatbotWidget extends Component
         }
 
         // 更新 Session 資訊
+        \Log::info('Updating session info');
         $this->updateSessionInfo();
 
         // 觸發完成事件（讓 Alpine.js 重置 isProcessing）
+        \Log::info('Emitting message-sent event');
         $this->emit('message-sent');
 
         // 滾動到底部
         $this->dispatchBrowserEvent('scroll-to-bottom');
+        \Log::info('ChatbotWidget::sendMessage completed');
     }
 
     /**

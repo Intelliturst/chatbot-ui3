@@ -49,19 +49,12 @@
                 const message = this.userInput;
                 this.userInput = '';
 
-                // 立即顯示用戶訊息（樂觀更新）
-                this.pendingUserMessage = {
-                    content: message,
-                    timestamp: this.getCurrentTime()
-                };
-                setTimeout(() => this.scrollToBottom(), 50);
-
+                // 不使用樂觀更新，直接發送（避免重複顯示）
                 // 安全超時重置（10秒後強制重置，防止卡住）
                 setTimeout(() => {
                     if (this.isProcessing) {
                         console.warn('Force reset isProcessing after timeout');
                         this.isProcessing = false;
-                        this.pendingUserMessage = null;
                     }
                 }, 10000);
 
@@ -71,13 +64,11 @@
         }"
         x-init="
             scrollToBottom();
-            // 監聽後端發送的完成事件（在 Alpine.js 中直接訪問變量和方法）
-            $wire.on('message-sent', () => {
-                console.log('message-sent event received, resetting isProcessing');
-                isProcessing = false;
-                pendingUserMessage = null;  // 清除臨時用戶訊息
-                setTimeout(() => scrollToBottom(), 100);
-            });
+        "
+        wire:message-sent="
+            console.log('message-sent event received');
+            isProcessing = false;
+            setTimeout(() => scrollToBottom(), 100);
         "
         @widget-opened.window="scrollToBottom()"
         @scroll-to-bottom.window="scrollToBottom()"
@@ -127,6 +118,7 @@
         {{-- Messages Area --}}
         <div x-ref="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white">
             @foreach($messages as $index => $message)
+                <div wire:key="message-{{ $index }}">
                 @if($message['role'] === 'user')
                     {{-- 用戶訊息 --}}
                     <div class="flex justify-end animate-slide-in-right"
@@ -183,6 +175,7 @@
                         </div>
                     </div>
                 @endif
+                </div>
             @endforeach
 
             {{-- 臨時用戶訊息（樂觀更新） --}}
