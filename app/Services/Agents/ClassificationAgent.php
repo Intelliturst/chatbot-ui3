@@ -9,6 +9,17 @@ class ClassificationAgent extends BaseAgent
      */
     public function handle($userMessage)
     {
+        // 【優先】檢查 Session 上下文 - 處理純數字課程編號
+        $lastAction = $this->session->getContext('last_action');
+
+        // 如果用戶輸入純數字，且上一個動作是課程相關
+        if (preg_match('/^[0-9]+$/', trim($userMessage)) &&
+            in_array($lastAction, ['course_list', 'featured_list', 'search_result'])) {
+            // 直接路由到課程代理，不進行 OpenAI 分類（更快更準）
+            $courseAgent = app(\App\Services\Agents\CourseAgent::class);
+            return $courseAgent->handle($userMessage);
+        }
+
         // 分類用戶意圖
         $category = $this->classifyIntent($userMessage);
 

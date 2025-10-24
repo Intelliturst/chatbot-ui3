@@ -142,7 +142,7 @@
             @endforeach
 
             {{-- AI 思考動畫（對話泡泡設計，無文字） --}}
-            <div wire:loading wire:target="sendMessage,selectOption" class="flex justify-start animate-fade-in">
+            <div wire:loading.delay wire:target="sendMessage,selectOption" class="flex justify-start animate-fade-in">
                     {{-- AI 頭像 --}}
                     <div class="w-9 h-9 rounded-full flex-shrink-0 mr-2 shadow-md
                                 bg-gradient-to-br from-primary to-primary-dark p-0.5">
