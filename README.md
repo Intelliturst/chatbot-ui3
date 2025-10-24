@@ -17,17 +17,16 @@
 
 ### 📋 Prerequisites
 
-1. **Read CLAUDE.md first** - Contains essential rules for Claude Code
-2. PHP >= 7.4
-3. Composer
-4. MySQL >= 5.7
-5. Node.js >= 14.x
+- PHP >= 7.3 (PHP 7.4 recommended)
+- Composer
+- MySQL >= 5.7
+- Node.js >= 14.x
 
 ### 🔧 Installation
 
 ```bash
 # 1. Clone the repository
-git clone <repository-url>
+git clone https://github.com/Intelliturst/chatbot-ui3.git
 cd chatbot-ui3
 
 # 2. Install PHP dependencies
@@ -57,72 +56,71 @@ npm run dev
 php artisan serve
 ```
 
-## 📁 AI/ML Project Structure
-
-This project follows an enterprise-grade AI/ML structure:
+## 📁 Project Structure
 
 ```
 chatbot-ui3/
-├── CLAUDE.md              # Essential rules for Claude Code
-├── README.md              # Project documentation
-├── src/                   # Source code (NEVER put files in root)
-│   ├── main/
-│   │   ├── php/           # Laravel application code
-│   │   │   ├── Core/      # Core chatbot logic & RAG processing
-│   │   │   ├── Utils/     # Helper functions
-│   │   │   ├── Models/    # Eloquent models
-│   │   │   ├── Services/  # JSON logic parser, RAG queries
-│   │   │   ├── Api/       # Livewire components & API endpoints
-│   │   │   ├── Training/  # AI model training scripts
-│   │   │   ├── Inference/ # AI inference engine
-│   │   │   └── Evaluation/# Model evaluation tools
-│   │   └── resources/
-│   │       ├── config/    # Chatbot JSON configs
-│   │       ├── data/      # Sample data
-│   │       └── assets/    # Tailwind CSS, images
-│   └── test/
-│       ├── unit/          # Unit tests
-│       └── integration/   # Integration tests
-├── data/                  # RAG data management
+├── app/                   # Laravel application code
+│   ├── Http/
+│   │   ├── Controllers/   # HTTP controllers
+│   │   └── Livewire/      # Livewire components for chatbot UI
+│   ├── Models/            # Eloquent models (RAG data, chat history)
+│   └── Services/          # Business logic services
+├── config/                # Laravel configuration files
+│   └── chatbot.php        # Chatbot-specific configuration
+├── database/
+│   ├── migrations/        # Database migrations
+│   └── seeders/           # Database seeders
+├── resources/
+│   ├── views/
+│   │   └── livewire/      # Livewire component views
+│   ├── css/               # Tailwind CSS source
+│   └── js/                # JavaScript assets
+├── routes/
+│   └── web.php            # Web routes
+├── public/                # Public assets
+├── storage/               # Laravel storage
+├── tests/                 # PHPUnit tests
+├── data/                  # AI/ML data management
 │   ├── raw/               # Original knowledge base
 │   ├── processed/         # Vectorized data
 │   └── external/          # External data sources
-├── notebooks/             # Jupyter notebooks for analysis
 ├── models/                # AI model storage
 │   ├── trained/           # Trained models
-│   └── metadata/          # Model configs
-├── experiments/           # ML experiment tracking
-├── docs/                  # Documentation
-├── output/                # Generated files
-└── logs/                  # Log files
+│   └── metadata/          # Model configurations
+├── notebooks/             # Jupyter notebooks for analysis
+│   ├── exploratory/       # Data exploration
+│   └── experiments/       # ML experiments
+└── experiments/           # ML experiment tracking
 ```
 
-## 🎯 Development Guidelines
+## 📝 Development Guidelines
 
-**Critical Rules (See CLAUDE.md for details):**
+**⚠️ IMPORTANT: Read CLAUDE.md first!**
 
+### Critical Rules:
 1. **Always search first** before creating new files
 2. **Extend existing** functionality rather than duplicating
 3. **Use Task agents** for operations >30 seconds
-4. **Single source of truth** for all functionality
-5. **Commit after each feature** and push to GitHub
-6. **Never create files in root** - use proper module structure
+4. **Commit after each feature** and push to GitHub
+5. **Never create files in root** - use proper module structure
 
 ### 🔄 Development Workflow
 
 ```bash
-# 1. Start with CLAUDE.md compliance check
-# 2. Implement feature in proper module (src/main/php/...)
-# 3. Write tests in src/test/
+# 1. Create feature branch
+git checkout -b feature/your-feature-name
+
+# 2. Implement feature following Laravel conventions
+# 3. Write tests
+php artisan test
+
 # 4. Commit changes
 git add .
-git commit -m "描述功能"
+git commit -m "Add: feature description"
 
 # 5. MANDATORY: Push to GitHub for backup
-git push origin main
-
-# 6. Verify tests pass
-php artisan test
+git push origin feature/your-feature-name
 ```
 
 ## 📚 技術架構 (Technical Architecture)
@@ -132,6 +130,8 @@ php artisan test
 - **Livewire**: Real-time chatbot UI components
 - **Eloquent ORM**: MySQL database management for RAG data
 - **Blade Templates**: View rendering with Tailwind CSS
+- **Migrations**: Database version control
+- **Seeders**: Sample data for development
 
 ### JSON Logic Engine
 
@@ -165,24 +165,6 @@ php artisan test --filter=ChatbotTest
 php artisan test --coverage
 ```
 
-## 📊 AI/ML Workflow
-
-### Training Pipeline
-
-```bash
-# 1. Prepare data
-php artisan chatbot:prepare-data
-
-# 2. Train model
-php artisan chatbot:train
-
-# 3. Evaluate
-php artisan chatbot:evaluate
-
-# 4. Deploy
-php artisan chatbot:deploy
-```
-
 ## 🛠️ Common Commands
 
 ```bash
@@ -205,9 +187,9 @@ git push origin main                 # MANDATORY: Backup to GitHub
 
 ## 📖 Documentation
 
-- **Development Guide**: See `docs/dev/`
-- **API Documentation**: See `docs/api/`
-- **User Manual**: See `docs/user/`
+- **Development Guide**: See `CLAUDE.md`
+- **Laravel Docs**: https://laravel.com/docs/8.x
+- **Livewire Docs**: https://laravel-livewire.com/docs
 
 ## 🤝 Contributing
 
@@ -219,7 +201,7 @@ git push origin main                 # MANDATORY: Backup to GitHub
 
 ## 📝 License
 
-[Your License Here]
+[MIT License](LICENSE)
 
 ## 🙏 Credits
 
