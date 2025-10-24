@@ -144,15 +144,19 @@ EOT;
      */
     protected function handleGreeting($userMessage)
     {
-        $responses = [
-            "您好！我是虹宇職訓的智能客服小幫手 👋 很高興為您服務！\n\n我可以協助您：\n• 查詢課程資訊\n• 了解補助資格\n• 報名流程說明\n• 常見問題解答\n\n請問有什麼可以幫您的呢？",
-            "嗨！歡迎來到虹宇職訓 😊\n\n我可以幫您：\n• 查看課程清單\n• 確認補助資格\n• 了解報名方式\n• 回答常見問題\n\n請問您想了解什麼呢？",
-        ];
+        // 使用 RAGService 讀取 JSON 檔案中的回應
+        $greetingData = $this->rag->getDefaultResponse('greetings');
 
-        $content = $responses[array_rand($responses)];
+        if ($greetingData) {
+            return [
+                'content' => $greetingData['response'] ?? '您好！',
+                'quick_options' => $greetingData['quick_options'] ?? []
+            ];
+        }
 
+        // 備用回應（如果 JSON 讀取失敗）
         return [
-            'content' => $content,
+            'content' => "您好！我是虹宇職訓的智能客服小幫手 👋\n\n請問有什麼可以幫您的呢？",
             'quick_options' => ['查看課程清單', '補助資格確認', '如何報名', '聯絡客服']
         ];
     }

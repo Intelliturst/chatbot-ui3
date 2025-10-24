@@ -4,16 +4,19 @@ namespace App\Services\Agents;
 
 use App\Services\OpenAIService;
 use App\Services\SessionManager;
+use App\Services\RAGService;
 
 abstract class BaseAgent
 {
     protected $openAI;
     protected $session;
+    protected $rag;
 
-    public function __construct(OpenAIService $openAI, SessionManager $session)
+    public function __construct(OpenAIService $openAI, SessionManager $session, RAGService $rag)
     {
         $this->openAI = $openAI;
         $this->session = $session;
+        $this->rag = $rag;
     }
 
     /**

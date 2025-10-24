@@ -39,7 +39,8 @@ class ChatbotServiceProvider extends ServiceProvider
         $this->app->singleton(ClassificationAgent::class, function ($app) {
             return new ClassificationAgent(
                 $app->make(OpenAIService::class),
-                $app->make(SessionManager::class)
+                $app->make(SessionManager::class),
+                $app->make(RAGService::class)
             );
         });
 
