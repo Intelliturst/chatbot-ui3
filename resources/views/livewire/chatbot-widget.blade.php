@@ -64,11 +64,11 @@
         }"
         x-init="
             scrollToBottom();
-        "
-        wire:message-sent="
-            console.log('message-sent event received');
-            isProcessing = false;
-            setTimeout(() => scrollToBottom(), 100);
+            $wire.on('message-sent', () => {
+                console.log('message-sent event received');
+                isProcessing = false;
+                setTimeout(() => scrollToBottom(), 100);
+            });
         "
         @widget-opened.window="scrollToBottom()"
         @scroll-to-bottom.window="scrollToBottom()"
