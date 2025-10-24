@@ -74,14 +74,24 @@ class ChatbotWidget extends Component
 
     /**
      * 發送訊息
+     *
+     * @param string|null $message 訊息內容（可選，優先使用參數）
      */
-    public function sendMessage()
+    public function sendMessage($message = null)
     {
-        if (empty(trim($this->userInput))) {
+        // 優先使用參數，fallback 到 $this->userInput
+        $userMessage = $message ?? $this->userInput;
+
+        \Log::info('ChatbotWidget::sendMessage called', [
+            'param_message' => $message,
+            'this_userInput' => $this->userInput,
+            'final_userMessage' => $userMessage
+        ]);
+
+        if (empty(trim($userMessage))) {
+            \Log::warning('ChatbotWidget::sendMessage - Empty message');
             return;
         }
-
-        $userMessage = $this->userInput;
 
         // 加入用戶訊息
         $this->addUserMessage($userMessage);

@@ -22,6 +22,7 @@
         x-data="{
             isProcessing: false,
             userInput: '',
+            pendingUserMessage: null,
             scrollToBottom() {
                 setTimeout(() => {
                     this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight;
@@ -36,6 +37,11 @@
                     .replace(/\n/g, '<br>');
                 return formatted;
             },
+            getCurrentTime() {
+                const now = new Date();
+                return now.getHours().toString().padStart(2, '0') + ':' +
+                       now.getMinutes().toString().padStart(2, '0');
+            },
             sendMessage() {
                 if (!this.userInput.trim()) return;
 
@@ -43,16 +49,37 @@
                 const message = this.userInput;
                 this.userInput = '';
 
-                $wire.set('userInput', message).then(() => {
-                    $wire.call('sendMessage');
-                });
+                // 立即顯示用戶訊息（樂觀更新）
+                this.pendingUserMessage = {
+                    content: message,
+                    timestamp: this.getCurrentTime()
+                };
+                setTimeout(() => this.scrollToBottom(), 50);
+
+                // 安全超時重置（10秒後強制重置，防止卡住）
+                setTimeout(() => {
+                    if (this.isProcessing) {
+                        console.warn('Force reset isProcessing after timeout');
+                        this.isProcessing = false;
+                        this.pendingUserMessage = null;
+                    }
+                }, 10000);
+
+                // 直接傳遞參數給後端方法
+                $wire.call('sendMessage', message);
             }
         }"
         x-init="
-            scrollToBottom();
+            const self = this;
+            self.scrollToBottom();
+            // 監聽後端發送的完成事件
             $wire.on('message-sent', () => {
-                isProcessing = false;
-                setTimeout(() => scrollToBottom(), 100);
+                console.log('message-sent event received, resetting isProcessing');
+                self.isProcessing = false;
+                self.pendingUserMessage = null;  // 清除臨時用戶訊息
+                setTimeout(() => {
+                    self.scrollToBottom();
+                }, 100);
             });
         "
         @widget-opened.window="scrollToBottom()"
@@ -160,6 +187,20 @@
                     </div>
                 @endif
             @endforeach
+
+            {{-- 臨時用戶訊息（樂觀更新） --}}
+            <div x-show="pendingUserMessage"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-x-4"
+                 x-transition:enter-end="opacity-100 translate-x-0"
+                 class="flex justify-end">
+                <div class="bg-gradient-to-br from-gray-100 to-gray-200 text-gray-900
+                            px-4 py-3 rounded-2xl rounded-tr-md max-w-[80%]
+                            shadow-sm">
+                    <p class="text-sm leading-relaxed whitespace-pre-line" x-text="pendingUserMessage?.content"></p>
+                    <span class="text-xs text-gray-500 mt-1 block" x-text="pendingUserMessage?.timestamp"></span>
+                </div>
+            </div>
 
             {{-- AI 思考動畫（對話泡泡設計，無文字） --}}
             <div x-show="isProcessing"
