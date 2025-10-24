@@ -17,23 +17,75 @@ class ClassificationAgent extends BaseAgent
             case 0: // 打招呼/閒聊
                 return $this->handleGreeting($userMessage);
 
-            case 9: // 未知/其他
-                return $this->handleUnknown($userMessage);
-
             case 1: // 課程內容查詢
             case 2: // 課程清單查詢
-            case 3: // 補助資格判斷
-            case 4: // 常見問題
-            case 5: // 報名流程
             case 6: // 精選課程
             case 7: // 課程搜尋
+                return $this->handleCourse($userMessage);
+
+            case 3: // 補助資格判斷
+                return $this->handleSubsidy($userMessage);
+
+            case 4: // 常見問題
+                return $this->handleFAQ($userMessage);
+
+            case 5: // 報名流程
+                return $this->handleEnrollment($userMessage);
+
             case 8: // 真人客服
-                // Phase 5 才會實現專業代理，目前先返回提示
-                return $this->handlePendingFeature($category, $userMessage);
+                return $this->handleHumanService($userMessage);
+
+            case 9: // 未知/其他
+                return $this->handleUnknown($userMessage);
 
             default:
                 return $this->errorResponse();
         }
+    }
+
+    /**
+     * 處理課程相關查詢
+     */
+    protected function handleCourse($userMessage)
+    {
+        $courseAgent = app(\App\Services\Agents\CourseAgent::class);
+        return $courseAgent->handle($userMessage);
+    }
+
+    /**
+     * 處理補助查詢
+     */
+    protected function handleSubsidy($userMessage)
+    {
+        $subsidyAgent = app(\App\Services\Agents\SubsidyAgent::class);
+        return $subsidyAgent->handle($userMessage);
+    }
+
+    /**
+     * 處理常見問題
+     */
+    protected function handleFAQ($userMessage)
+    {
+        $faqAgent = app(\App\Services\Agents\FAQAgent::class);
+        return $faqAgent->handle($userMessage);
+    }
+
+    /**
+     * 處理報名流程
+     */
+    protected function handleEnrollment($userMessage)
+    {
+        $enrollmentAgent = app(\App\Services\Agents\EnrollmentAgent::class);
+        return $enrollmentAgent->handle($userMessage);
+    }
+
+    /**
+     * 處理真人客服轉接
+     */
+    protected function handleHumanService($userMessage)
+    {
+        $humanServiceAgent = app(\App\Services\Agents\HumanServiceAgent::class);
+        return $humanServiceAgent->handle($userMessage);
     }
 
     /**
@@ -128,29 +180,6 @@ EOT;
         ];
     }
 
-    /**
-     * 處理尚未實現的功能
-     */
-    protected function handlePendingFeature($category, $userMessage)
-    {
-        $categoryNames = [
-            1 => '課程內容查詢',
-            2 => '課程清單查詢',
-            3 => '補助資格判斷',
-            4 => '常見問題',
-            5 => '報名流程說明',
-            6 => '精選課程查詢',
-            7 => '課程搜尋',
-            8 => '真人客服轉接',
-        ];
-
-        $categoryName = $categoryNames[$category] ?? '未知功能';
-
-        return [
-            'content' => "✅ 已識別您的需求：{$categoryName}\n\n此功能將在 Phase 4-5 完成開發。\n\n目前可使用的功能：\n• 基本對話\n• 打招呼問候\n• Session 記憶\n\n您的問題：「{$userMessage}」已記錄在對話歷史中。",
-            'quick_options' => ['查看更多功能', '聯絡客服']
-        ];
-    }
 
     /**
      * 獲取系統提示詞
