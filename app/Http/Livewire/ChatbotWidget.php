@@ -4,6 +4,7 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 use App\Services\SessionManager;
+use App\Services\Agents\ClassificationAgent;
 
 class ChatbotWidget extends Component
 {
@@ -15,6 +16,7 @@ class ChatbotWidget extends Component
     public $sessionInfo = [];
 
     protected $sessionManager;
+    protected $classificationAgent;
 
     /**
      * 組件初始化
@@ -22,6 +24,7 @@ class ChatbotWidget extends Component
     public function mount()
     {
         $this->sessionManager = app(SessionManager::class);
+        $this->classificationAgent = app(ClassificationAgent::class);
 
         // 載入對話歷史
         $this->loadHistory();
@@ -61,20 +64,37 @@ class ChatbotWidget extends Component
             return;
         }
 
+        $userMessage = $this->userInput;
+
         // 加入用戶訊息
-        $this->addUserMessage($this->userInput);
+        $this->addUserMessage($userMessage);
+
+        // 清空輸入
+        $this->userInput = '';
 
         // 顯示載入動畫
         $this->isLoading = true;
 
-        // 模擬AI回覆（暫時）
-        $response = "您說：「{$this->userInput}」。這是一個測試回覆，OpenAI 整合將在 Phase 3 完成。\n\n💡 Session 資訊：已保存 " . count($this->messages) . " 條訊息。";
+        try {
+            // 調用分類代理處理
+            $response = $this->classificationAgent->handle($userMessage);
 
-        // 加入AI回覆
-        $this->addAssistantMessage($response);
+            // 加入AI回覆
+            $this->addAssistantMessage(
+                $response['content'],
+                $response['quick_options'] ?? []
+            );
 
-        // 清空輸入
-        $this->userInput = '';
+        } catch (\Exception $e) {
+            \Log::error('Chatbot Error: ' . $e->getMessage());
+
+            // 錯誤回覆
+            $this->addAssistantMessage(
+                '抱歉，系統暫時無法處理您的請求。請稍後再試或聯絡客服：03-4227723',
+                ['聯絡客服']
+            );
+        }
+
         $this->isLoading = false;
 
         // 更新 Session 資訊

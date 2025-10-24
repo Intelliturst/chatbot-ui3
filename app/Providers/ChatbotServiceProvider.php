@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use App\Services\SessionManager;
+use App\Services\OpenAIService;
+use App\Services\Agents\ClassificationAgent;
 
 class ChatbotServiceProvider extends ServiceProvider
 {
@@ -15,6 +17,19 @@ class ChatbotServiceProvider extends ServiceProvider
         // 註冊 SessionManager 為單例
         $this->app->singleton(SessionManager::class, function ($app) {
             return new SessionManager();
+        });
+
+        // 註冊 OpenAIService 為單例
+        $this->app->singleton(OpenAIService::class, function ($app) {
+            return new OpenAIService();
+        });
+
+        // 註冊 ClassificationAgent 為單例
+        $this->app->singleton(ClassificationAgent::class, function ($app) {
+            return new ClassificationAgent(
+                $app->make(OpenAIService::class),
+                $app->make(SessionManager::class)
+            );
         });
     }
 
