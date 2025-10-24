@@ -10,20 +10,20 @@ class EnrollmentAgent extends BaseAgent
 
     public function __construct($openAI, $session, RAGService $ragService)
     {
-        parent::__construct($openAI, $session);
+        parent::__construct($openAI, $session, $ragService);
         $this->ragService = $ragService;
     }
 
     /**
-     * 处理用户消息
+     * 處理用戶訊息
      */
     public function handle($userMessage)
     {
-        // 判断询问在职或待业报名流程
+        // 判斷询问在職或待業報名流程
         $courseType = $this->detectCourseType($userMessage);
 
         if (!$courseType) {
-            // 无法判断，询问用户
+            // 无法判斷，询问用戶
             return $this->askCourseType();
         }
 
@@ -31,32 +31,32 @@ class EnrollmentAgent extends BaseAgent
     }
 
     /**
-     * 检测课程类型
+     * 檢測課程類型
      */
     protected function detectCourseType($message)
     {
-        if (preg_match('/(待业|待業|失业|失業|全日|全日制)/ui', $message)) {
+        if (preg_match('/(待業|待業|失业|失業|全日|全日制)/ui', $message)) {
             return 'unemployed';
         }
-        if (preg_match('/(在职|在職|產投|产投|周末|週末)/ui', $message)) {
+        if (preg_match('/(在職|在職|產投|产投|周末|週末)/ui', $message)) {
             return 'employed';
         }
         return null;
     }
 
     /**
-     * 询问课程类型
+     * 询问課程類型
      */
     protected function askCourseType()
     {
         return [
-            'content' => "请问您想了解哪种课程的报名流程？\n\n📚 **课程类型**：\n\n**待业课程**\n• 全日制（周一至周五 9:00-17:00）\n• 需参加甄试\n• 政府补助80-100%\n\n**在职课程**\n• 周末上课\n• 线上报名即可\n• 结训后可申请80%补助",
-            'quick_options' => ['待业课程报名', '在职课程报名']
+            'content' => "請问您想了解哪种課程的報名流程？\n\n📚 **課程類型**：\n\n**待業課程**\n• 全日制（周一至周五 9:00-17:00）\n• 需参加甄试\n• 政府補助80-100%\n\n**在職課程**\n• 周末上课\n• 线上報名即可\n• 结训后可申請80%補助",
+            'quick_options' => ['待業課程報名', '在職課程報名']
         ];
     }
 
     /**
-     * 提供报名流程
+     * 提供報名流程
      */
     protected function provideEnrollmentProcess($courseType)
     {
@@ -66,7 +66,7 @@ class EnrollmentAgent extends BaseAgent
             return $this->errorResponse();
         }
 
-        $typeName = $courseType === 'unemployed' ? '待业' : '在职';
+        $typeName = $courseType === 'unemployed' ? '待業' : '在職';
         $content = "📝 **{$processData['title']}**\n\n";
 
         foreach ($processData['steps'] as $step) {
@@ -96,14 +96,14 @@ class EnrollmentAgent extends BaseAgent
         }
 
         $serviceInfo = $this->ragService->getServiceInfo();
-        $content .= "📞 **联络方式**\n";
-        $content .= "电话：{$serviceInfo['contact']['phone']['display']}\n";
+        $content .= "📞 **聯絡方式**\n";
+        $content .= "電話：{$serviceInfo['contact']['phone']['display']}\n";
         $content .= "LINE：{$serviceInfo['contact']['line']['id']}\n";
         $content .= "地址：{$serviceInfo['contact']['address']['full']}";
 
         $quickOptions = $courseType === 'unemployed'
-            ? ['甄试准备什么', '查看待业课程', '补助资格', '联络客服']
-            : ['查看在职课程', '补助资格', '联络客服'];
+            ? ['甄试准备什么', '查看待業課程', '補助資格', '聯絡客服']
+            : ['查看在職課程', '補助資格', '聯絡客服'];
 
         return [
             'content' => $content,
@@ -112,21 +112,21 @@ class EnrollmentAgent extends BaseAgent
     }
 
     /**
-     * 获取系统提示词
+     * 獲取系統提示詞
      */
     protected function getSystemPrompt()
     {
         return <<<EOT
-你是虹宇职训的报名咨询专员。你的职责是：
-1. 说明报名流程
-2. 回答报名相关问题
-3. 引导学员完成报名
+你是虹宇職訓的報名諮詢專員。你的職責是：
+1. 說明報名流程
+2. 回答報名相关問題
+3. 引导学员完成報名
 
-报名重点：
-- 待业课程：需参加甄试，准备身分证和相关证明
-- 在职课程：就业通线上报名，需缴全额学费
+報名重点：
+- 待業課程：需参加甄试，准备身分证和相关证明
+- 在職課程：就业通线上報名，需缴全额学费
 
-请用繁体中文回答，保持清晰、详细的说明。
+請用繁体中文回答，保持清晰、詳細的說明。
 EOT;
     }
 }

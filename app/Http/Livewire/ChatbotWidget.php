@@ -12,7 +12,6 @@ class ChatbotWidget extends Component
     public $messages = [];
     public $userInput = '';
     public $isOpen = false;
-    public $isLoading = false;
     public $sessionInfo = [];
 
     /**
@@ -49,6 +48,14 @@ class ChatbotWidget extends Component
     }
 
     /**
+     * 取得 RAGService 實例
+     */
+    protected function getRAGService()
+    {
+        return app(\App\Services\RAGService::class);
+    }
+
+    /**
      * 載入對話歷史
      */
     protected function loadHistory()
@@ -82,9 +89,6 @@ class ChatbotWidget extends Component
         // 清空輸入
         $this->userInput = '';
 
-        // 顯示載入動畫
-        $this->isLoading = true;
-
         try {
             // 調用分類代理處理
             $response = $this->getClassificationAgent()->handle($userMessage);
@@ -105,8 +109,6 @@ class ChatbotWidget extends Component
                 ['聯絡客服']
             );
         }
-
-        $this->isLoading = false;
 
         // 更新 Session 資訊
         $this->updateSessionInfo();
@@ -185,10 +187,21 @@ class ChatbotWidget extends Component
      */
     protected function addWelcomeMessage()
     {
-        $this->addAssistantMessage(
-            "您好！我是虹宇職訓的智能客服小幫手 👋\n\n我可以協助您：\n1️⃣ 查詢課程資訊\n2️⃣ 了解補助資格\n3️⃣ 報名流程說明\n4️⃣ 常見問題解答\n\n請問有什麼可以幫您的呢？",
-            ['查看課程清單', '補助資格確認', '如何報名', '聯絡客服']
-        );
+        // 從 JSON 讀取歡迎訊息
+        $greetingData = $this->getRAGService()->getDefaultResponse('greetings');
+
+        if ($greetingData) {
+            $this->addAssistantMessage(
+                $greetingData['response'] ?? '您好！我是虹宇職訓的智能客服小幫手 👋',
+                $greetingData['quick_options'] ?? []
+            );
+        } else {
+            // 備用歡迎訊息（如果 JSON 讀取失敗）
+            $this->addAssistantMessage(
+                "您好！我是虹宇職訓的智能客服小幫手 👋\n\n請問有什麼可以幫您的呢？",
+                ['查看課程清單', '補助資格確認', '如何報名', '聯絡客服']
+            );
+        }
     }
 
     /**

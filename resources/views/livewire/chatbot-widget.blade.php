@@ -111,9 +111,9 @@
                                 <span class="text-xs text-gray-400 mt-2 block">{{ $message['timestamp'] }}</span>
                             </div>
 
-                            {{-- 快速選項按鈕（僅最後一條訊息顯示，載入時隱藏） --}}
-                            @if($loop->last && !empty($message['quick_options']) && !$isLoading)
-                                <div class="mt-3 flex flex-wrap gap-2">
+                            {{-- 快速選項按鈕（僅最後一條訊息顯示） --}}
+                            @if($loop->last && !empty($message['quick_options']))
+                                <div class="mt-3 flex flex-wrap gap-2" wire:loading.remove wire:target="sendMessage,selectOption">
                                     @foreach($message['quick_options'] as $optionIndex => $option)
                                         <button
                                             wire:click="selectOption('{{ $option }}')"
@@ -142,8 +142,7 @@
             @endforeach
 
             {{-- AI 思考動畫（對話泡泡設計，無文字） --}}
-            @if($isLoading)
-                <div class="flex justify-start animate-fade-in">
+            <div wire:loading wire:target="sendMessage,selectOption" class="flex justify-start animate-fade-in">
                     {{-- AI 頭像 --}}
                     <div class="w-9 h-9 rounded-full flex-shrink-0 mr-2 shadow-md
                                 bg-gradient-to-br from-primary to-primary-dark p-0.5">
@@ -161,8 +160,7 @@
                                  style="animation-delay: 0.2s"></div>
                         </div>
                     </div>
-                </div>
-            @endif
+            </div>
         </div>
 
         {{-- Input Area --}}

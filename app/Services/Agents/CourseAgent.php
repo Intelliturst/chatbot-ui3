@@ -10,16 +10,16 @@ class CourseAgent extends BaseAgent
 
     public function __construct($openAI, $session, RAGService $ragService)
     {
-        parent::__construct($openAI, $session);
+        parent::__construct($openAI, $session, $ragService);
         $this->ragService = $ragService;
     }
 
     /**
-     * 处理用户消息
+     * 處理用戶訊息
      */
     public function handle($userMessage)
     {
-        // 判断查询类型
+        // 判斷查詢類型
         $queryType = $this->detectQueryType($userMessage);
 
         switch ($queryType) {
@@ -44,71 +44,86 @@ class CourseAgent extends BaseAgent
     }
 
     /**
-     * 检测查询类型
+     * 檢測查詢類型
      */
     protected function detectQueryType($message)
     {
-        if (preg_match('/(待业|失业|待業|失業).*课程|课程.*(待业|失业)/ui', $message)) {
+        if (preg_match('/(待業|失業).*課程|課程.*(待業|失業)/ui', $message)) {
             return 'list_unemployed';
         }
-        if (preg_match('/(在职|在職|產投|产投).*课程|课程.*(在职|在職)/ui', $message)) {
+        if (preg_match('/(在職|產投).*課程|課程.*(在職)/ui', $message)) {
             return 'list_employed';
         }
-        if (preg_match('/(精选|熱門|热门|推荐|精選|推薦)/ui', $message)) {
+        if (preg_match('/(精選|熱門|推薦)/ui', $message)) {
             return 'featured';
         }
-        if (preg_match('/(搜尋|搜索|找|查).*课程/ui', $message)) {
+        if (preg_match('/(搜尋|找|查).*課程/ui', $message)) {
             return 'search';
         }
-        if (preg_match('/课程.*[0-9]+|[0-9]+.*课程|编号|編號/ui', $message)) {
+
+        // 檢查是否為課程編號查詢（包含純數字）
+        if (preg_match('/課程.*[0-9]+|[0-9]+.*課程|編號/ui', $message)) {
             return 'specific';
         }
+
+        // 純數字輸入 - 檢查 Session 上下文
+        if (preg_match('/^[0-9]+$/', trim($message))) {
+            $lastAction = $this->session->getContext('last_action');
+            // 如果上一個動作是課程清單，視為課程編號查詢
+            if (in_array($lastAction, ['course_list', 'featured_list', 'search_result'])) {
+                return 'specific';
+            }
+        }
+
         return 'general';
     }
 
     /**
-     * 处理课程清单查询
+     * 處理課程清單查詢
      */
     protected function handleCourseList($type)
     {
         $courses = $this->ragService->queryCourses(['type' => $type]);
-        $typeName = $type === 'unemployed' ? '待业' : '在职';
+        $typeName = $type === 'unemployed' ? '待業' : '在職';
 
         if (empty($courses)) {
             return [
-                'content' => "目前没有{$typeName}课程资料。",
-                'quick_options' => ['查看其他课程', '联络客服']
+                'content' => "目前沒有{$typeName}課程資料。",
+                'quick_options' => ['查看其他課程', '聯絡客服']
             ];
         }
 
-        $content = "📚 **{$typeName}课程清单**\n\n";
-        $content .= "找到 " . count($courses) . " 门课程：\n\n";
+        $content = "📚 **{$typeName}課程清單**\n\n";
+        $content .= "找到 " . count($courses) . " 門課程：\n\n";
 
         foreach (array_slice($courses, 0, 5) as $index => $course) {
             $num = $index + 1;
             $featured = isset($course['featured']) && $course['featured'] ? '⭐ ' : '';
             $content .= "{$num}. {$featured}{$course['course_name']}\n";
-            $content .= "   时数：{$course['schedule']['total_hours']}小时\n";
+            $content .= "   時數：{$course['schedule']['total_hours']}小時\n";
             if (isset($course['schedule']['start_date'])) {
-                $content .= "   开课：{$course['schedule']['start_date']}\n";
+                $content .= "   開課：{$course['schedule']['start_date']}\n";
             }
             $content .= "\n";
         }
 
         if (count($courses) > 5) {
-            $content .= "...还有 " . (count($courses) - 5) . " 门课程\n\n";
+            $content .= "...還有 " . (count($courses) - 5) . " 門課程\n\n";
         }
 
-        $content .= "💡 请输入课程编号（1-" . count($courses) . "）查看详情";
+        $content .= "💡 請輸入課程編號（1-" . count($courses) . "）查看詳情";
+
+        // 設置 Session 上下文，以便識別後續的純數字輸入
+        $this->session->setContext('last_action', 'course_list');
 
         return [
             'content' => $content,
-            'quick_options' => ['精选课程', '搜寻课程', '补助资格', '如何报名']
+            'quick_options' => ['精選課程', '搜尋課程', '補助資格', '如何報名']
         ];
     }
 
     /**
-     * 处理精选课程
+     * 處理精選課程
      */
     protected function handleFeaturedCourses()
     {
@@ -116,41 +131,44 @@ class CourseAgent extends BaseAgent
 
         if (empty($courses)) {
             return [
-                'content' => "目前没有精选课程。",
-                'quick_options' => ['查看所有课程', '联络客服']
+                'content' => "目前沒有精選課程。",
+                'quick_options' => ['查看所有課程', '聯絡客服']
             ];
         }
 
-        $content = "⭐ **精选热门课程**\n\n";
+        $content = "⭐ **精選熱門課程**\n\n";
 
         foreach ($courses as $index => $course) {
             $num = $index + 1;
-            $typeName = $course['type'] === 'unemployed' ? '待业' : '在职';
+            $typeName = $course['type'] === 'unemployed' ? '待業' : '在職';
             $content .= "{$num}. {$course['course_name']} ({$typeName})\n";
-            $content .= "   时数：{$course['schedule']['total_hours']}小时\n";
+            $content .= "   時數：{$course['schedule']['total_hours']}小時\n";
             $content .= "   特色：" . implode('、', array_slice($course['keywords'], 0, 3)) . "\n\n";
         }
 
-        $content .= "💡 请输入编号查看详情";
+        $content .= "💡 請輸入編號查看詳情";
+
+        // 設置 Session 上下文
+        $this->session->setContext('last_action', 'featured_list');
 
         return [
             'content' => $content,
-            'quick_options' => ['待业课程', '在职课程', '搜寻课程']
+            'quick_options' => ['待業課程', '在職課程', '搜尋課程']
         ];
     }
 
     /**
-     * 处理课程搜索
+     * 處理課程搜尋
      */
     protected function handleCourseSearch($message)
     {
-        // 提取关键字
+        // 提取關鍵字
         $keyword = $this->extractKeyword($message);
 
         if (empty($keyword)) {
             return [
-                'content' => "请告诉我您想搜寻什么课程？\n\n例如：AI课程、行销课程、Python课程等",
-                'quick_options' => ['AI课程', '行销课程', '设计课程', '管理课程']
+                'content' => "請告訴我您想搜尋什麼課程？\n\n例如：AI課程、行銷課程、Python課程等",
+                'quick_options' => ['AI課程', '行銷課程', '設計課程', '管理課程']
             ];
         }
 
@@ -158,47 +176,50 @@ class CourseAgent extends BaseAgent
 
         if (empty($courses)) {
             return [
-                'content' => "很抱歉，找不到与「{$keyword}」相关的课程。\n\n您可以：\n• 尝试其他关键字\n• 查看所有课程清单\n• 联络客服询问",
-                'quick_options' => ['待业课程', '在职课程', '精选课程', '联络客服']
+                'content' => "很抱歉，找不到與「{$keyword}」相關的課程。\n\n您可以：\n• 嘗試其他關鍵字\n• 查看所有課程清單\n• 聯絡客服詢問",
+                'quick_options' => ['待業課程', '在職課程', '精選課程', '聯絡客服']
             ];
         }
 
-        $content = "🔍 **搜寻结果：{$keyword}**\n\n";
-        $content .= "找到 " . count($courses) . " 门相关课程：\n\n";
+        $content = "🔍 **搜尋結果：{$keyword}**\n\n";
+        $content .= "找到 " . count($courses) . " 門相關課程：\n\n";
 
         foreach (array_slice($courses, 0, 5) as $index => $course) {
             $num = $index + 1;
-            $typeName = $course['type'] === 'unemployed' ? '待业' : '在职';
+            $typeName = $course['type'] === 'unemployed' ? '待業' : '在職';
             $content .= "{$num}. {$course['course_name']} ({$typeName})\n";
-            $content .= "   时数：{$course['schedule']['total_hours']}小时\n\n";
+            $content .= "   時數：{$course['schedule']['total_hours']}小時\n\n";
         }
 
-        $content .= "💡 请输入编号查看详情";
+        $content .= "💡 請輸入編號查看詳情";
+
+        // 設置 Session 上下文
+        $this->session->setContext('last_action', 'search_result');
 
         return [
             'content' => $content,
-            'quick_options' => ['查看更多', '其他关键字', '补助资格']
+            'quick_options' => ['查看更多', '其他關鍵字', '補助資格']
         ];
     }
 
     /**
-     * 提取搜索关键字
+     * 提取搜尋關鍵字
      */
     protected function extractKeyword($message)
     {
-        // 移除常见的查询词
-        $cleanMessage = preg_replace('/(我想|想要|想学|想學|搜尋|搜索|查询|查詢|课程|課程|有没有|有沒有|找)/ui', '', $message);
+        // 移除常见的查詢词
+        $cleanMessage = preg_replace('/(我想|想要|想学|想學|搜尋|搜尋|查詢|查詢|課程|課程|有沒有|有沒有|找)/ui', '', $message);
         $cleanMessage = trim($cleanMessage);
 
         return $cleanMessage;
     }
 
     /**
-     * 处理特定课程查询
+     * 處理特定課程查詢
      */
     protected function handleSpecificCourse($message)
     {
-        // 提取课程编号
+        // 提取課程編號
         preg_match('/[0-9]+/', $message, $matches);
 
         if (empty($matches)) {
@@ -210,8 +231,8 @@ class CourseAgent extends BaseAgent
 
         if (!$courseId) {
             return [
-                'content' => "找不到编号 {$number} 的课程。\n\n请输入正确的课程编号，或查看课程清单。",
-                'quick_options' => ['待业课程', '在职课程', '精选课程']
+                'content' => "找不到編號 {$number} 的課程。\n\n請輸入正確的課程編號，或查看課程清單。",
+                'quick_options' => ['待業課程', '在職課程', '精選課程']
             ];
         }
 
@@ -219,8 +240,8 @@ class CourseAgent extends BaseAgent
 
         if (!$course) {
             return [
-                'content' => "无法载入课程资料，请稍后再试。",
-                'quick_options' => ['联络客服']
+                'content' => "無法載入課程資料，請稍後再試。",
+                'quick_options' => ['聯絡客服']
             ];
         }
 
@@ -228,53 +249,53 @@ class CourseAgent extends BaseAgent
     }
 
     /**
-     * 格式化课程详情
+     * 格式化課程詳情
      */
     protected function formatCourseDetail($course)
     {
-        $typeName = $course['type'] === 'unemployed' ? '待业' : '在职';
+        $typeName = $course['type'] === 'unemployed' ? '待業' : '在職';
         $featured = isset($course['featured']) && $course['featured'] ? '⭐ ' : '';
 
         $content = "📚 **{$featured}{$course['course_name']}**\n\n";
-        $content .= "**课程类型**：{$typeName}课程\n\n";
+        $content .= "**課程類型**：{$typeName}課程\n\n";
 
-        // 时间资讯
-        $content .= "**⏰ 时间资讯**\n";
-        $content .= "• 总时数：{$course['schedule']['total_hours']}小时\n";
-        $content .= "• 上课时间：{$course['schedule']['class_time']}\n";
+        // 時間資訊
+        $content .= "**⏰ 時間資訊**\n";
+        $content .= "• 總時數：{$course['schedule']['total_hours']}小時\n";
+        $content .= "• 上課時間：{$course['schedule']['class_time']}\n";
 
         if (isset($course['schedule']['start_date'])) {
-            $content .= "• 开课日期：{$course['schedule']['start_date']}\n";
+            $content .= "• 開課日期：{$course['schedule']['start_date']}\n";
         }
         if (isset($course['schedule']['enrollment_deadline'])) {
-            $content .= "• 报名截止：{$course['schedule']['enrollment_deadline']}\n";
+            $content .= "• 報名截止：{$course['schedule']['enrollment_deadline']}\n";
         }
         $content .= "\n";
 
-        // 费用资讯
-        $content .= "**💰 费用资讯**\n";
+        // 費用資訊
+        $content .= "**💰 費用資訊**\n";
         $content .= "• {$course['fee']['amount']}\n";
         if (isset($course['fee']['note'])) {
             $content .= "• {$course['fee']['note']}\n";
         }
         $content .= "\n";
 
-        // 上课地点
-        $content .= "**📍 上课地点**\n";
+        // 上課地點
+        $content .= "**📍 上課地點**\n";
         $content .= "{$course['location']['address']}\n\n";
 
-        // 课程内容
+        // 課程內容
         if (isset($course['content'])) {
             $contentPreview = mb_substr($course['content'], 0, 150);
             if (mb_strlen($course['content']) > 150) {
                 $contentPreview .= '...';
             }
-            $content .= "**📖 课程内容**\n{$contentPreview}\n\n";
+            $content .= "**📖 課程內容**\n{$contentPreview}\n\n";
         }
 
-        $content .= "🔗 详细资讯：{$course['url']}";
+        $content .= "🔗 詳細資訊：{$course['url']}";
 
-        $quickOptions = $course['related_questions'] ?? ['补助资格', '如何报名', '更多课程'];
+        $quickOptions = $course['related_questions'] ?? ['補助資格', '如何報名', '更多課程'];
 
         return [
             'content' => $content,
@@ -283,13 +304,13 @@ class CourseAgent extends BaseAgent
     }
 
     /**
-     * 处理一般课程咨询
+     * 處理一般課程諮詢
      */
     protected function handleGeneralInquiry($message)
     {
-        // 使用 OpenAI 结合上下文回答
+        // 使用 OpenAI 結合上下文回答
         $context = [
-            '课程资讯' => '虹宇职训提供待业和在职两类课程，涵盖AI、程式设计、行销、设计等领域。'
+            '課程資訊' => '虹宇職訓提供待業和在職兩類課程，涵蓋AI、程式設計、行銷、設計等領域。'
         ];
 
         $response = $this->generateResponse($message, $context);
@@ -297,33 +318,33 @@ class CourseAgent extends BaseAgent
         if ($response) {
             return [
                 'content' => $response,
-                'quick_options' => ['待业课程', '在职课程', '精选课程', '搜寻课程']
+                'quick_options' => ['待業課程', '在職課程', '精選課程', '搜尋課程']
             ];
         }
 
         return [
-            'content' => "我可以协助您：\n\n1️⃣ 查看待业课程清单\n2️⃣ 查看在职课程清单\n3️⃣ 搜寻特定课程\n4️⃣ 查看精选课程\n\n请问您想了解什么呢？",
-            'quick_options' => ['待业课程', '在职课程', '精选课程', '搜寻课程']
+            'content' => "我可以協助您：\n\n1️⃣ 查看待業課程清單\n2️⃣ 查看在職課程清單\n3️⃣ 搜尋特定課程\n4️⃣ 查看精選課程\n\n請问您想了解什麼呢？",
+            'quick_options' => ['待業課程', '在職課程', '精選課程', '搜尋課程']
         ];
     }
 
     /**
-     * 获取系统提示词
+     * 獲取系統提示詞
      */
     protected function getSystemPrompt()
     {
         return <<<EOT
-你是虹宇职训的课程咨询专员。你的职责是：
-1. 协助学员了解课程资讯
-2. 提供清晰、准确的课程说明
-3. 引导学员找到适合的课程
+你是虹宇職訓的課程諮詢專員。你的職責是：
+1. 協助學員了解課程資訊
+2. 提供清晰、準確的課程說明
+3. 引導學員找到適合的課程
 
-虹宇职训课程特色：
-- 待业课程：政府全额或部分补助，全日制密集训练
-- 在职课程：周末上课，结训后可申请80%补助
-- 课程领域：AI、程式设计、行销、设计、管理等
+虹宇職訓課程特色：
+- 待業課程：政府全額或部分補助，全日制密集訓練
+- 在職課程：週末上課，結訓後可申請80%補助
+- 課程領域：AI、程式設計、行銷、設計、管理等
 
-请用繁体中文回答，保持专业友善的语气。
+請用繁體中文回答，保持專業友善的語氣。
 EOT;
     }
 }

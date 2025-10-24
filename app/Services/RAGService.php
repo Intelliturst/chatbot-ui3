@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Cache;
 
 class RAGService
 {
-    protected $cacheDuration = 3600; // 1小時緩存
+    protected $cacheDuration = 0; // 1小時緩存
 
     /**
      * 查詢課程資料
