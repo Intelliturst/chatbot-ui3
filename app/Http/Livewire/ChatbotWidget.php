@@ -113,6 +113,9 @@ class ChatbotWidget extends Component
         // 更新 Session 資訊
         $this->updateSessionInfo();
 
+        // 觸發完成事件（讓 Alpine.js 重置 isProcessing）
+        $this->emit('message-sent');
+
         // 滾動到底部
         $this->dispatchBrowserEvent('scroll-to-bottom');
     }
@@ -210,6 +213,7 @@ class ChatbotWidget extends Component
     public function selectOption($option)
     {
         $this->userInput = $option;
+        // selectOption 會調用 sendMessage，sendMessage 會觸發 processing 事件
         $this->sendMessage();
     }
 

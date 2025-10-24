@@ -20,6 +20,7 @@
     @if($isOpen)
     <div
         x-data="{
+            isProcessing: false,
             scrollToBottom() {
                 setTimeout(() => {
                     this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight;
@@ -35,9 +36,16 @@
                 return formatted;
             }
         }"
-        x-init="scrollToBottom()"
+        x-init="
+            scrollToBottom();
+            $wire.on('message-sent', () => {
+                isProcessing = false;
+                setTimeout(() => scrollToBottom(), 100);
+            });
+        "
         @widget-opened.window="scrollToBottom()"
         @scroll-to-bottom.window="scrollToBottom()"
+        wire:loading.class="opacity-100"
         class="fixed bottom-0 right-0 md:bottom-6 md:right-6 w-full md:w-[420px]
                h-screen md:h-auto md:max-h-[650px] bg-white rounded-none md:rounded-3xl
                shadow-2xl flex flex-col overflow-hidden z-50
@@ -113,10 +121,11 @@
 
                             {{-- 快速選項按鈕（僅最後一條訊息顯示） --}}
                             @if($loop->last && !empty($message['quick_options']))
-                                <div class="mt-3 flex flex-wrap gap-2" wire:loading.remove wire:target="sendMessage,selectOption">
+                                <div class="mt-3 flex flex-wrap gap-2" x-show="!isProcessing">
                                     @foreach($message['quick_options'] as $optionIndex => $option)
                                         <button
                                             wire:click="selectOption('{{ $option }}')"
+                                            x-on:click="isProcessing = true"
                                             wire:loading.attr="disabled"
                                             class="group inline-flex items-center px-4 py-2
                                                    bg-primary text-white rounded-xl text-sm font-medium
@@ -142,7 +151,14 @@
             @endforeach
 
             {{-- AI 思考動畫（對話泡泡設計，無文字） --}}
-            <div wire:loading.delay wire:target="sendMessage,selectOption" class="flex justify-start animate-fade-in">
+            <div x-show="isProcessing"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="flex justify-start">
                     {{-- AI 頭像 --}}
                     <div class="w-9 h-9 rounded-full flex-shrink-0 mr-2 shadow-md
                                 bg-gradient-to-br from-primary to-primary-dark p-0.5">
@@ -167,7 +183,7 @@
         <div class="p-4 bg-white border-t-2 border-gray-100 rounded-b-none md:rounded-b-3xl flex-shrink-0 shadow-inner">
             <div class="flex items-end space-x-2">
                 <textarea
-                    wire:model.defer="userInput"
+                    wire:model="userInput"
                     wire:loading.attr="disabled"
                     rows="1"
                     placeholder="請輸入您的問題..."
@@ -177,13 +193,24 @@
                            hover:border-gray-300 transition-colors
                            disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
                     wire:keydown.enter.prevent="sendMessage"
-                    x-data
-                    x-on:keydown.enter.prevent="if (!$event.shiftKey) { $wire.call('sendMessage') }"
+                    x-data="{
+                        handleEnter(event) {
+                            if (!event.shiftKey) {
+                                event.preventDefault();
+                                isProcessing = true;
+                                $wire.call('sendMessage').then(() => {
+                                    isProcessing = false;
+                                });
+                            }
+                        }
+                    }"
+                    x-on:keydown.enter="handleEnter($event)"
                 ></textarea>
 
                 <button
                     wire:click="sendMessage"
                     wire:loading.attr="disabled"
+                    x-on:click="isProcessing = true"
                     class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark text-white
                            rounded-xl hover:shadow-lg active:scale-95
                            transition-all duration-300 flex items-center justify-center flex-shrink-0
