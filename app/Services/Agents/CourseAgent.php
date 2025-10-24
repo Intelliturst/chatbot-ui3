@@ -307,6 +307,15 @@ class CourseAgent extends BaseAgent
         $totalCourses = count($courses);
         $coursesToShow = array_slice($courses, $offset, $pageSize);
 
+        // 【DEBUG】記錄渲染資訊
+        \Log::info('CourseAgent::renderCoursePage', [
+            'offset' => $offset,
+            'total_courses' => $totalCourses,
+            'page_size' => $pageSize,
+            'courses_to_show_count' => count($coursesToShow),
+            'course_ids' => array_column($coursesToShow, 'id')
+        ]);
+
         $content = "📚 **{$title}**\n\n";
         $content .= "找到 " . $totalCourses . " 門課程";
 
@@ -316,11 +325,23 @@ class CourseAgent extends BaseAgent
         }
         $content .= "：\n\n";
 
+        $globalNumbers = []; // 【DEBUG】記錄全局編號
         foreach ($coursesToShow as $course) {
             // 使用全局編號（從 course_mapping.json）
             $globalNum = $this->getGlobalNumber($course['id']);
 
+            // 【DEBUG】記錄編號映射
+            $globalNumbers[] = [
+                'course_id' => $course['id'],
+                'global_num' => $globalNum,
+                'course_name' => $course['course_name']
+            ];
+
             if ($globalNum === null) {
+                \Log::warning('CourseAgent: Global number not found', [
+                    'course_id' => $course['id'],
+                    'course_name' => $course['course_name']
+                ]);
                 // 如果找不到全局編號，跳過這門課程
                 continue;
             }
@@ -346,6 +367,9 @@ class CourseAgent extends BaseAgent
             $content .= "\n";
         }
 
+        // 【DEBUG】記錄所有編號
+        \Log::info('CourseAgent: Global numbers used', $globalNumbers);
+
         // 提示文字
         if ($offset + $pageSize < $totalCourses) {
             $remaining = $totalCourses - ($offset + $pageSize);
@@ -356,6 +380,12 @@ class CourseAgent extends BaseAgent
 
         // 更新 Session offset
         $this->session->setContext('display_offset', $offset);
+
+        // 【DEBUG】記錄 Session 狀態
+        \Log::info('CourseAgent: Session updated', [
+            'display_offset' => $offset,
+            'last_action' => $this->session->getContext('last_action')
+        ]);
 
         return [
             'content' => $content,
@@ -395,7 +425,15 @@ class CourseAgent extends BaseAgent
         $currentOffset = $this->session->getContext('display_offset', 0);
         $lastAction = $this->session->getContext('last_action');
 
+        // 【DEBUG】記錄分頁請求
+        \Log::info('CourseAgent::handlePagination', [
+            'course_list_count' => $courseList ? count($courseList) : 0,
+            'current_offset' => $currentOffset,
+            'last_action' => $lastAction
+        ]);
+
         if (empty($courseList)) {
+            \Log::warning('CourseAgent: No course list in session');
             return [
                 'content' => "沒有找到課程列表，請重新查詢。",
                 'quick_options' => ['待業課程', '在職課程', '精選課程']
@@ -405,7 +443,14 @@ class CourseAgent extends BaseAgent
         // 計算新的 offset
         $newOffset = $currentOffset + 5;
 
+        \Log::info('CourseAgent: Pagination offset', [
+            'old_offset' => $currentOffset,
+            'new_offset' => $newOffset,
+            'total_courses' => count($courseList)
+        ]);
+
         if ($newOffset >= count($courseList)) {
+            \Log::info('CourseAgent: Reached end of list');
             return [
                 'content' => "已經顯示所有課程了！\n\n💡 您可以重新搜尋或查看其他類型的課程。",
                 'quick_options' => ['待業課程', '在職課程', '精選課程']
