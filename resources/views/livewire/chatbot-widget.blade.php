@@ -70,16 +70,13 @@
             }
         }"
         x-init="
-            const self = this;
-            self.scrollToBottom();
-            // 監聽後端發送的完成事件
+            scrollToBottom();
+            // 監聽後端發送的完成事件（在 Alpine.js 中直接訪問變量和方法）
             $wire.on('message-sent', () => {
                 console.log('message-sent event received, resetting isProcessing');
-                self.isProcessing = false;
-                self.pendingUserMessage = null;  // 清除臨時用戶訊息
-                setTimeout(() => {
-                    self.scrollToBottom();
-                }, 100);
+                isProcessing = false;
+                pendingUserMessage = null;  // 清除臨時用戶訊息
+                setTimeout(() => scrollToBottom(), 100);
             });
         "
         @widget-opened.window="scrollToBottom()"
