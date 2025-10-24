@@ -67,7 +67,10 @@
             console.log('livewire-message-sent received, isProcessing:', isProcessing);
             isProcessing = false;
             console.log('after reset, isProcessing:', isProcessing);
-            setTimeout(() => scrollToBottom(), 100);
+            $nextTick(() => {
+                console.log('nextTick, isProcessing:', isProcessing);
+                scrollToBottom();
+            });
         "
         @widget-opened.window="scrollToBottom()"
         @scroll-to-bottom.window="scrollToBottom()"
@@ -148,7 +151,7 @@
 
                             {{-- 快速選項按鈕（僅最後一條訊息顯示） --}}
                             @if($loop->last && !empty($message['quick_options']))
-                                <div class="mt-3 flex flex-wrap gap-2" x-show="!isProcessing">
+                                <div wire:ignore.self class="mt-3 flex flex-wrap gap-2" x-show="!isProcessing">
                                     @foreach($message['quick_options'] as $optionIndex => $option)
                                         <button
                                             x-on:click="userInput = '{{ $option }}'; sendMessage();"
@@ -192,7 +195,7 @@
             </div>
 
             {{-- AI 思考動畫（對話泡泡設計，無文字） --}}
-            <div x-show="isProcessing"
+            <div wire:ignore x-show="isProcessing"
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0"
                  x-transition:enter-end="opacity-100"
