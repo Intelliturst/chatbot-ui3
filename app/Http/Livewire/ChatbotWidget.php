@@ -15,17 +15,11 @@ class ChatbotWidget extends Component
     public $isLoading = false;
     public $sessionInfo = [];
 
-    protected $sessionManager;
-    protected $classificationAgent;
-
     /**
      * 組件初始化
      */
     public function mount()
     {
-        $this->sessionManager = app(SessionManager::class);
-        $this->classificationAgent = app(ClassificationAgent::class);
-
         // 載入對話歷史
         $this->loadHistory();
 
@@ -39,11 +33,27 @@ class ChatbotWidget extends Component
     }
 
     /**
+     * 取得 SessionManager 實例
+     */
+    protected function getSessionManager()
+    {
+        return app(SessionManager::class);
+    }
+
+    /**
+     * 取得 ClassificationAgent 實例
+     */
+    protected function getClassificationAgent()
+    {
+        return app(ClassificationAgent::class);
+    }
+
+    /**
      * 載入對話歷史
      */
     protected function loadHistory()
     {
-        $history = $this->sessionManager->getHistory();
+        $history = $this->getSessionManager()->getHistory();
 
         $this->messages = array_map(function($msg) {
             return [
@@ -77,7 +87,7 @@ class ChatbotWidget extends Component
 
         try {
             // 調用分類代理處理
-            $response = $this->classificationAgent->handle($userMessage);
+            $response = $this->getClassificationAgent()->handle($userMessage);
 
             // 加入AI回覆
             $this->addAssistantMessage(
@@ -87,6 +97,7 @@ class ChatbotWidget extends Component
 
         } catch (\Exception $e) {
             \Log::error('Chatbot Error: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
 
             // 錯誤回覆
             $this->addAssistantMessage(
@@ -121,7 +132,7 @@ class ChatbotWidget extends Component
      */
     public function clearSession()
     {
-        $this->sessionManager->clearSession();
+        $this->getSessionManager()->clearSession();
         $this->messages = [];
         $this->addWelcomeMessage();
         $this->updateSessionInfo();
@@ -145,7 +156,7 @@ class ChatbotWidget extends Component
         $this->messages[] = $message;
 
         // 同步保存到 SessionManager
-        $this->sessionManager->addMessage('user', $content);
+        $this->getSessionManager()->addMessage('user', $content);
     }
 
     /**
@@ -163,10 +174,10 @@ class ChatbotWidget extends Component
         $this->messages[] = $message;
 
         // 同步保存到 SessionManager
-        $this->sessionManager->addMessage('assistant', $content);
+        $this->getSessionManager()->addMessage('assistant', $content);
 
         // 保存上下文
-        $this->sessionManager->setContext('last_response', $content);
+        $this->getSessionManager()->setContext('last_response', $content);
     }
 
     /**
@@ -194,7 +205,7 @@ class ChatbotWidget extends Component
      */
     protected function updateSessionInfo()
     {
-        $this->sessionInfo = $this->sessionManager->getSessionInfo();
+        $this->sessionInfo = $this->getSessionManager()->getSessionInfo();
     }
 
     /**
