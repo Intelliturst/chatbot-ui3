@@ -198,7 +198,7 @@ class CourseAgent extends BaseAgent
     }
 
     /**
-     * 處理特定課程查詢
+     * 處理特定課程查詢（使用相對編號 - 上下文感知）
      */
     protected function handleSpecificCourse($message)
     {
@@ -211,24 +211,28 @@ class CourseAgent extends BaseAgent
 
         $number = (int)$matches[0];
 
-        // 【唯一正確方式】使用全局編號系統
-        $courseId = $this->ragService->getCourseIdByNumber($number);
+        // 從 Session 中取得當前課程清單
+        $courseList = $this->session->getContext('current_course_list');
 
-        if (!$courseId) {
+        if (empty($courseList)) {
             return [
-                'content' => "找不到編號 {$number} 的課程。\n\n請輸入正確的課程編號，或查看課程清單。",
+                'content' => "請先查看課程清單，再輸入編號查詢。\n\n您可以：",
                 'quick_options' => ['待業課程', '在職課程', '精選課程']
             ];
         }
 
-        $course = $this->ragService->getCourseById($courseId);
+        // 使用相對編號查找（編號從1開始，陣列索引從0開始）
+        $courseIndex = $number - 1;
 
-        if (!$course) {
+        if (!isset($courseList[$courseIndex])) {
+            $totalCourses = count($courseList);
             return [
-                'content' => "無法載入課程資料，請稍後再試。",
-                'quick_options' => ['聯絡客服']
+                'content' => "編號 {$number} 超出範圍。\n\n目前清單共有 {$totalCourses} 門課程，請輸入 1-{$totalCourses} 之間的編號。",
+                'quick_options' => ['重新查看清單', '待業課程', '在職課程']
             ];
         }
+
+        $course = $courseList[$courseIndex];
 
         return $this->formatCourseDetail($course);
     }
@@ -323,22 +327,13 @@ class CourseAgent extends BaseAgent
     }
 
     /**
-     * 統一的課程頁面渲染（使用全局編號）
+     * 統一的課程頁面渲染（使用相對編號 - 上下文感知）
      */
     protected function renderCoursePage($courses, $offset = 0, $title = '課程清單', $showFeatured = false)
     {
         $pageSize = 5;
         $totalCourses = count($courses);
         $coursesToShow = array_slice($courses, $offset, $pageSize);
-
-        // 【DEBUG】記錄渲染資訊
-        \Log::info('CourseAgent::renderCoursePage', [
-            'offset' => $offset,
-            'total_courses' => $totalCourses,
-            'page_size' => $pageSize,
-            'courses_to_show_count' => count($coursesToShow),
-            'course_ids' => array_column($coursesToShow, 'id')
-        ]);
 
         $content = "📚 **{$title}**\n\n";
         $content .= "找到 " . $totalCourses . " 門課程";
@@ -349,31 +344,15 @@ class CourseAgent extends BaseAgent
         }
         $content .= "：\n\n";
 
-        $globalNumbers = []; // 【DEBUG】記錄全局編號
-        foreach ($coursesToShow as $course) {
-            // 使用全局編號（從 course_mapping.json）
-            $globalNum = $this->getGlobalNumber($course['id']);
-
-            // 【DEBUG】記錄編號映射
-            $globalNumbers[] = [
-                'course_id' => $course['id'],
-                'global_num' => $globalNum,
-                'course_name' => $course['course_name']
-            ];
-
-            if ($globalNum === null) {
-                \Log::warning('CourseAgent: Global number not found', [
-                    'course_id' => $course['id'],
-                    'course_name' => $course['course_name']
-                ]);
-                // 如果找不到全局編號，跳過這門課程
-                continue;
-            }
+        // 使用相對編號（從 offset + 1 開始）
+        foreach ($coursesToShow as $index => $course) {
+            // 相對編號 = offset + index + 1
+            $relativeNum = $offset + $index + 1;
 
             $featured = isset($course['featured']) && $course['featured'] ? '⭐ ' : '';
             $typeName = $course['type'] === 'unemployed' ? '待業' : '在職';
 
-            $content .= "{$globalNum}. {$featured}{$course['course_name']}";
+            $content .= "{$relativeNum}. {$featured}{$course['course_name']}";
             if ($showFeatured) {
                 $content .= " ({$typeName})";
             }
@@ -391,9 +370,6 @@ class CourseAgent extends BaseAgent
             $content .= "\n";
         }
 
-        // 【DEBUG】記錄所有編號
-        \Log::info('CourseAgent: Global numbers used', $globalNumbers);
-
         // 提示文字
         if ($offset + $pageSize < $totalCourses) {
             $remaining = $totalCourses - ($offset + $pageSize);
@@ -405,40 +381,12 @@ class CourseAgent extends BaseAgent
         // 更新 Session offset
         $this->session->setContext('display_offset', $offset);
 
-        // 【DEBUG】記錄 Session 狀態
-        \Log::info('CourseAgent: Session updated', [
-            'display_offset' => $offset,
-            'last_action' => $this->session->getContext('last_action')
-        ]);
-
         return [
             'content' => $content,
             'quick_options' => ['補助資格', '如何報名', '聯絡客服']
         ];
     }
 
-    /**
-     * 根據 course_id 查找全局編號
-     * 從 course_mapping.json 的 number_to_id 反向查找
-     */
-    protected function getGlobalNumber($courseId)
-    {
-        try {
-            $mapping = $this->ragService->getCourseMapping();
-            $numberToId = $mapping['number_to_id'] ?? [];
-
-            foreach ($numberToId as $num => $id) {
-                if ($id == $courseId) {
-                    return (int)$num;
-                }
-            }
-        } catch (\Exception $e) {
-            // 如果讀取失敗，返回 null
-            return null;
-        }
-
-        return null;
-    }
 
     /**
      * 處理分頁請求（更多、剩下的課程）
