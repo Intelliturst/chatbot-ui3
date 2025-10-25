@@ -47,7 +47,7 @@ class CourseAgent extends BaseAgent
     }
 
     /**
-     * 檢測查詢類型
+     * 檢測查詢類型（優化版：先判斷用戶意圖，避免過早搜尋）
      */
     protected function detectQueryType($message)
     {
@@ -59,33 +59,48 @@ class CourseAgent extends BaseAgent
             }
         }
 
+        // 【優先級 1】明確的類型查詢（待業/在職）
         if (preg_match('/(待業|失業).*課程|課程.*(待業|失業)/ui', $message)) {
             return 'list_unemployed';
         }
         if (preg_match('/(在職|產投).*課程|課程.*(在職)/ui', $message)) {
             return 'list_employed';
         }
+
+        // 【優先級 2】精選課程
         if (preg_match('/(精選|熱門|推薦)/ui', $message)) {
             return 'featured';
         }
-        if (preg_match('/(搜尋|找|查).*課程/ui', $message)) {
-            return 'search';
-        }
 
-        // 檢查是否為課程編號查詢（包含純數字）
+        // 【優先級 3】課程編號查詢
         if (preg_match('/課程.*[0-9]+|[0-9]+.*課程|編號/ui', $message)) {
             return 'specific';
         }
-
         // 純數字輸入 - 檢查 Session 上下文
         if (preg_match('/^[0-9]+$/', trim($message))) {
             $lastAction = $this->session->getContext('last_action');
-            // 如果上一個動作是課程清單，視為課程編號查詢
             if (in_array($lastAction, ['course_list', 'featured_list', 'search_result'])) {
                 return 'specific';
             }
         }
 
+        // 【優先級 4】一般性清單查詢（引導用戶選擇類型）
+        // 這些關鍵字應該引導用戶，而不是直接搜尋
+        if (preg_match('/(課程清單|課程列表|有哪些課程|所有課程|課程有什麼|查看課程|顯示課程)/ui', $message)) {
+            return 'general';  // 引導用戶選擇待業/在職
+        }
+
+        // 【優先級 5】課程搜尋（必須有具體關鍵字）
+        // 更嚴格的匹配：避免把「查看」、「清單」當作搜尋
+        if (preg_match('/(搜尋|搜索).*(課程)/ui', $message)) {
+            return 'search';
+        }
+        // 或者：明確包含課程領域關鍵字（AI、行銷、設計等）
+        if (preg_match('/(AI|人工智慧|行銷|設計|程式|Python|Java|管理|UI|UX|數位|影片|剪輯|Excel|平面|網頁|前端|後端|資料|大數據).*(課程)/ui', $message)) {
+            return 'search';
+        }
+
+        // 【預設】一般諮詢（引導用戶）
         return 'general';
     }
 
@@ -274,11 +289,19 @@ class CourseAgent extends BaseAgent
     }
 
     /**
-     * 處理一般課程諮詢
+     * 處理一般課程諮詢（優化版：更友善地引導用戶）
      */
     protected function handleGeneralInquiry($message)
     {
-        // 使用 OpenAI 結合上下文回答
+        // 檢查是否為課程清單相關查詢
+        if (preg_match('/(課程清單|課程列表|有哪些課程|查看課程|顯示課程)/ui', $message)) {
+            return [
+                'content' => "好的！虹宇職訓提供以下兩類課程：\n\n📚 **待業課程**\n• 政府全額或部分補助\n• 全日制密集訓練\n• 適合待業、轉職者\n\n💼 **在職課程**\n• 週末上課，不影響工作\n• 結訓後可申請80%補助\n• 適合在職進修\n\n請問您想查看哪一類課程呢？",
+                'quick_options' => ['待業課程', '在職課程', '精選課程']
+            ];
+        }
+
+        // 其他一般諮詢使用 OpenAI 回答
         $context = [
             '課程資訊' => '虹宇職訓提供待業和在職兩類課程，涵蓋AI、程式設計、行銷、設計等領域。'
         ];
@@ -288,13 +311,14 @@ class CourseAgent extends BaseAgent
         if ($response) {
             return [
                 'content' => $response,
-                'quick_options' => ['待業課程', '在職課程', '精選課程', '搜尋課程']
+                'quick_options' => ['待業課程', '在職課程', '精選課程']
             ];
         }
 
+        // 預設回應
         return [
-            'content' => "我可以協助您：\n\n1️⃣ 查看待業課程清單\n2️⃣ 查看在職課程清單\n3️⃣ 搜尋特定課程\n4️⃣ 查看精選課程\n\n請问您想了解什麼呢？",
-            'quick_options' => ['待業課程', '在職課程', '精選課程', '搜尋課程']
+            'content' => "我可以協助您：\n\n1️⃣ 查看待業課程清單\n2️⃣ 查看在職課程清單\n3️⃣ 查看精選課程\n4️⃣ 搜尋特定課程（如：AI課程、行銷課程）\n\n請問您想了解什麼呢？",
+            'quick_options' => ['待業課程', '在職課程', '精選課程']
         ];
     }
 

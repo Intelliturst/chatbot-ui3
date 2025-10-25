@@ -127,7 +127,7 @@
                                 <div class="mt-3 flex flex-wrap gap-2">
                                     @foreach($message['quick_options'] as $optionIndex => $option)
                                         <button
-                                            x-on:click="userInput = '{{ $option }}'; sendMessage();"
+                                            wire:click="sendMessage('{{ addslashes($option) }}')"
                                             wire:loading.attr="disabled"
                                             wire:target="sendMessage"
                                             class="group inline-flex items-center px-4 py-2
