@@ -20,9 +20,7 @@
     @if($isOpen)
     <div
         x-data="{
-            isProcessing: false,
             userInput: '',
-            pendingUserMessage: null,
             scrollToBottom() {
                 setTimeout(() => {
                     this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight;
@@ -37,44 +35,19 @@
                     .replace(/\n/g, '<br>');
                 return formatted;
             },
-            getCurrentTime() {
-                const now = new Date();
-                return now.getHours().toString().padStart(2, '0') + ':' +
-                       now.getMinutes().toString().padStart(2, '0');
-            },
             sendMessage() {
                 if (!this.userInput.trim()) return;
 
-                this.isProcessing = true;
                 const message = this.userInput;
                 this.userInput = '';
 
-                // 不使用樂觀更新，直接發送（避免重複顯示）
-                // 安全超時重置（10秒後強制重置，防止卡住）
-                setTimeout(() => {
-                    if (this.isProcessing) {
-                        console.warn('Force reset isProcessing after timeout');
-                        this.isProcessing = false;
-                    }
-                }, 10000);
-
-                // 直接傳遞參數給後端方法
+                // 直接調用後端，讓 Livewire 自動處理重新渲染
                 $wire.call('sendMessage', message);
             }
         }"
         x-init="scrollToBottom()"
-        x-on:livewire-message-sent.window="
-            console.log('livewire-message-sent received, isProcessing:', isProcessing);
-            isProcessing = false;
-            console.log('after reset, isProcessing:', isProcessing);
-            $nextTick(() => {
-                console.log('nextTick, isProcessing:', isProcessing);
-                scrollToBottom();
-            });
-        "
         @widget-opened.window="scrollToBottom()"
         @scroll-to-bottom.window="scrollToBottom()"
-        wire:loading.class="opacity-100"
         class="fixed bottom-0 right-0 md:bottom-6 md:right-6 w-full md:w-[420px]
                h-screen md:h-auto md:max-h-[650px] bg-white rounded-none md:rounded-3xl
                shadow-2xl flex flex-col overflow-hidden z-50
@@ -151,11 +124,12 @@
 
                             {{-- 快速選項按鈕（僅最後一條訊息顯示） --}}
                             @if($loop->last && !empty($message['quick_options']))
-                                <div wire:ignore.self class="mt-3 flex flex-wrap gap-2" x-show="!isProcessing">
+                                <div class="mt-3 flex flex-wrap gap-2">
                                     @foreach($message['quick_options'] as $optionIndex => $option)
                                         <button
                                             x-on:click="userInput = '{{ $option }}'; sendMessage();"
-                                            x-bind:disabled="isProcessing"
+                                            wire:loading.attr="disabled"
+                                            wire:target="sendMessage"
                                             class="group inline-flex items-center px-4 py-2
                                                    bg-primary text-white rounded-xl text-sm font-medium
                                                    hover:bg-primary-dark hover:shadow-lg
@@ -180,29 +154,10 @@
                 </div>
             @endforeach
 
-            {{-- 臨時用戶訊息（樂觀更新） --}}
-            <div x-show="pendingUserMessage"
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0 translate-x-4"
-                 x-transition:enter-end="opacity-100 translate-x-0"
-                 class="flex justify-end">
-                <div class="bg-gradient-to-br from-gray-100 to-gray-200 text-gray-900
-                            px-4 py-3 rounded-2xl rounded-tr-md max-w-[80%]
-                            shadow-sm">
-                    <p class="text-sm leading-relaxed whitespace-pre-line" x-text="pendingUserMessage?.content"></p>
-                    <span class="text-xs text-gray-500 mt-1 block" x-text="pendingUserMessage?.timestamp"></span>
-                </div>
-            </div>
-
-            {{-- AI 思考動畫（對話泡泡設計，無文字） --}}
-            <div wire:ignore x-show="isProcessing"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="flex justify-start">
+            {{-- AI 思考動畫（對話泡泡設計，無文字） - 使用 wire:loading 自動控制 --}}
+            <div wire:loading.flex
+                 wire:target="sendMessage"
+                 class="justify-start hidden animate-fade-in">
                     {{-- AI 頭像 --}}
                     <div class="w-9 h-9 rounded-full flex-shrink-0 mr-2 shadow-md
                                 bg-gradient-to-br from-primary to-primary-dark p-0.5">
@@ -228,7 +183,8 @@
             <div class="flex items-end space-x-2">
                 <textarea
                     x-model="userInput"
-                    x-bind:disabled="isProcessing"
+                    wire:loading.attr="disabled"
+                    wire:target="sendMessage"
                     rows="1"
                     placeholder="請輸入您的問題..."
                     class="flex-1 px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl
@@ -241,7 +197,8 @@
 
                 <button
                     x-on:click="sendMessage()"
-                    x-bind:disabled="isProcessing"
+                    wire:loading.attr="disabled"
+                    wire:target="sendMessage"
                     class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark text-white
                            rounded-xl hover:shadow-lg active:scale-95
                            transition-all duration-300 flex items-center justify-center flex-shrink-0

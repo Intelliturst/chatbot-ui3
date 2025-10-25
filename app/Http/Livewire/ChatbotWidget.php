@@ -129,10 +129,6 @@ class ChatbotWidget extends Component
         \Log::info('Updating session info');
         $this->updateSessionInfo();
 
-        // 觸發完成事件（讓 Alpine.js 重置 isProcessing）
-        \Log::info('Emitting message-sent event');
-        $this->dispatchBrowserEvent('livewire-message-sent');
-
         // 滾動到底部
         $this->dispatchBrowserEvent('scroll-to-bottom');
         \Log::info('ChatbotWidget::sendMessage completed');
