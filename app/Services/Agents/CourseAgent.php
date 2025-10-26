@@ -422,7 +422,7 @@ class CourseAgent extends BaseAgent
 
         return [
             'content' => $content,
-            'quick_options' => ['補助資格', '如何報名', '課程內容']
+            'quick_options' => ['補助資格', '如何報名', '查看完整內容']
         ];
     }
 

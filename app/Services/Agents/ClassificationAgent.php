@@ -23,12 +23,21 @@ class ClassificationAgent extends BaseAgent
         '搜尋課程' => ['action' => 'promptCourseSearch'],
         '更多' => ['agent' => 'course', 'action' => 'pagination'],
         '查看完整內容' => ['agent' => 'course', 'action' => 'course_content'],
+        '課程內容' => ['agent' => 'course', 'action' => 'course_content'],  // 向後兼容
         '更多課程' => ['agent' => 'course', 'type' => 'featured'],
+        '查看其他課程' => ['action' => 'showCourseMenu'],
+        '查看所有課程' => ['action' => 'showCourseMenu'],
+        'AI課程' => ['agent' => 'course', 'keyword' => 'AI'],
+        '行銷課程' => ['agent' => 'course', 'keyword' => '行銷'],
+        '設計課程' => ['agent' => 'course', 'keyword' => '設計'],
+        '管理課程' => ['agent' => 'course', 'keyword' => '管理'],
+        '精選課程' => ['agent' => 'course', 'type' => 'featured'],
 
         // Subsidy Menu
         '我是在職者' => ['agent' => 'subsidy', 'status' => 'employed'],
         '我是待業者' => ['agent' => 'subsidy', 'status' => 'unemployed'],
         '不確定身份' => ['action' => 'showSubsidyHelp'],
+        '不确定身份' => ['action' => 'showSubsidyHelp'],  // 简体兼容
 
         // Simplified Subsidy Buttons
         '在職者' => ['agent' => 'subsidy', 'status' => 'employed'],
@@ -66,6 +75,8 @@ class ClassificationAgent extends BaseAgent
         '需要準備什麼' => ['agent' => 'faq', 'keyword' => '準備'],
         '甄試流程' => ['agent' => 'faq', 'keyword' => '甄試'],
         '錄取通知' => ['agent' => 'faq', 'keyword' => '錄取'],
+        '待業課程報名' => ['agent' => 'enrollment', 'course_type' => 'unemployed'],
+        '在職課程報名' => ['agent' => 'enrollment', 'course_type' => 'employed'],
     ];
 
     /**
