@@ -23,7 +23,7 @@ class FAQAgent extends BaseAgent
         $faqResults = $this->searchAllFAQs($userMessage);
 
         if (!empty($faqResults)) {
-            // 找到相关FAQ
+            // 找到相關FAQ
             return $this->provideFAQAnswer($faqResults, $userMessage);
         }
 
@@ -97,7 +97,7 @@ class FAQAgent extends BaseAgent
     protected function provideFAQAnswer($faqResults, $userMessage)
     {
         if (count($faqResults) == 1) {
-            // 只有一个結果，直接回答
+            // 只有一個結果，直接回答
             $faq = $faqResults[0];
 
             $content = "**{$faq['question']}**\n\n";
@@ -113,7 +113,7 @@ class FAQAgent extends BaseAgent
             ];
         }
 
-        // 多个結果，列出让用戶选择
+        // 多個結果，列出讓用戶選擇
         $content = "我找到以下相關問題：\n\n";
 
         foreach (array_slice($faqResults, 0, 4) as $index => $faq) {
@@ -123,7 +123,7 @@ class FAQAgent extends BaseAgent
 
         $content .= "\n💡 請選擇您想了解的問題，或直接描述您的問題";
 
-        // 将FAQ結果缓存到session
+        // 將FAQ結果緩存到session
         $this->session->setContext('faq_results', $faqResults);
 
         return [
@@ -139,7 +139,7 @@ class FAQAgent extends BaseAgent
      */
     protected function provideGeneralAnswer($userMessage)
     {
-        // 从知识库獲取相关資訊
+        // 從知識庫獲取相關資訊
         $serviceInfo = $this->ragService->getServiceInfo();
         $subsidyFAQ = $this->ragService->getSubsidyFAQ();
 
@@ -158,7 +158,7 @@ class FAQAgent extends BaseAgent
             ];
         }
 
-        // 无法回答，建议常見問題或聯絡客服
+        // 無法回答，建議常見問題或聯絡客服
         $allFAQs = $this->ragService->searchFAQ();
         $commonQuestions = array_slice(array_map(function($faq) {
             return $faq['question'];

@@ -107,12 +107,12 @@ class HumanServiceAgent extends BaseAgent
     protected function getSystemPrompt()
     {
         return <<<EOT
-你是虹宇職訓的客服转接助理。你的職責是：
+你是虹宇職訓的客服轉接助理。你的職責是：
 1. 提供真人客服聯絡資訊
 2. 理解用戶需求
-3. 引导用戶选择最适合的聯絡方式
+3. 引導用戶選擇最適合的聯絡方式
 
-請用繁体中文回答，保持友善、專業的语气。
+請用繁體中文回答，保持友善、專業的語氣。
 EOT;
     }
 }

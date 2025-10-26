@@ -275,7 +275,7 @@ EOT;
             if ($faqResult && isset($faqResult['content'])) {
                 // 檢查是否為「找不到」的回應（避免循環回退）
                 if (stripos($faqResult['content'], '很抱歉') === false &&
-                    stripos($faqResult['content'], '无法完全理解') === false) {
+                    stripos($faqResult['content'], '無法完全理解') === false) {
                     return $faqResult;
                 }
             }
