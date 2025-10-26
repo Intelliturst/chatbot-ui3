@@ -46,7 +46,7 @@ class ClassificationAgent extends BaseAgent
         // Greeting Quick Options
         '查看課程清單' => ['action' => 'showCourseMenu'],
         '補助資格確認' => ['action' => 'showSubsidyMenu'],
-        '常見問題' => ['agent' => 'faq'],
+        '常見問題' => ['action' => 'showFAQList'],
         '查看更多課程' => ['agent' => 'course', 'type' => 'featured'],
         '回到主選單' => ['action' => 'showMainMenu'],
         '聯絡真人客服' => ['agent' => 'human_service'],
@@ -92,7 +92,13 @@ class ClassificationAgent extends BaseAgent
             return $this->routeQuickButton($route, $trimmed);
         }
 
-        // 【優先 1】純數字 + 課程上下文
+        // 【優先 1】純數字 + FAQ 列表上下文
+        if (preg_match('/^[0-9]+$/', $trimmed) && $lastAction === 'faq_list') {
+            // 用戶選擇 FAQ 編號
+            return $this->handleFAQSelection($trimmed);
+        }
+
+        // 【優先 2】純數字 + 課程上下文
         if (preg_match('/^[0-9]+$/', $trimmed) &&
             in_array($lastAction, ['course_list', 'featured_list', 'search_result'])) {
             // 直接路由到課程代理（用戶選擇課程編號）
@@ -517,6 +523,86 @@ EOT;
         return [
             'content' => "💡 **如何判斷您的就業身份**\n\n**在職者**\n✅ 目前有工作\n✅ 有投保勞保、就保、職災保或農保\n✅ 課程通常在週末上課\n\n**待業者**\n✅ 目前沒有工作\n✅ 正在找工作或待業中\n✅ 課程通常是全日制（週一至週五）\n\n**還是不確定？**\n您可以：\n1. 聯絡客服：03-4227723\n2. LINE：@ouy9482x\n3. 我們會協助您判斷適合的補助類型",
             'quick_options' => ['我是在職者', '我是待業者', '聯絡客服']
+        ];
+    }
+
+    /**
+     * 顯示常見問題列表
+     */
+    protected function showFAQList()
+    {
+        // 從 RAG 服務獲取所有 FAQ
+        $allFAQs = $this->rag->searchFAQ();
+
+        // 取前 8 個常見問題
+        $topFAQs = array_slice($allFAQs, 0, 8);
+
+        $content = "❓ **常見問題**\n\n以下是常見的問題，請選擇您想了解的：\n\n";
+
+        foreach ($topFAQs as $index => $faq) {
+            $num = $index + 1;
+            $content .= "{$num}. {$faq['question']}\n";
+        }
+
+        $content .= "\n💡 您也可以直接輸入您的問題，我會為您查找答案。";
+
+        // 將 FAQ 結果緩存到 session，供後續選擇使用
+        $this->session->setContext('faq_results', $topFAQs);
+        $this->session->setContext('last_action', 'faq_list');
+
+        return [
+            'content' => $content,
+            'quick_options' => array_map(function($i) {
+                return (string)($i + 1);
+            }, range(0, min(7, count($topFAQs) - 1)))
+        ];
+    }
+
+    /**
+     * 處理 FAQ 選擇
+     */
+    protected function handleFAQSelection($number)
+    {
+        $faqResults = $this->session->getContext('faq_results');
+
+        if (!$faqResults) {
+            // 如果沒有緩存的 FAQ，重新顯示列表
+            return $this->showFAQList();
+        }
+
+        $index = intval($number) - 1;
+
+        if ($index < 0 || $index >= count($faqResults)) {
+            return [
+                'content' => "❌ 選擇的編號超出範圍，請重新選擇。",
+                'quick_options' => ['常見問題', '課程列表', '聯絡客服']
+            ];
+        }
+
+        $faq = $faqResults[$index];
+
+        $content = "**{$faq['question']}**\n\n";
+        $content .= $faq['answer'];
+
+        // 清除 FAQ 上下文
+        $this->session->setContext('last_action', null);
+        $this->session->setContext('faq_results', null);
+
+        // 從答案中提取相關快速按鈕（如果有的話）
+        $quickOptions = ['課程列表', '補助資格', '聯絡客服'];
+
+        // 如果答案中提到特定主題，添加相關按鈕
+        if (stripos($faq['answer'], '課程') !== false) {
+            $quickOptions = ['查看課程', '補助資格', '常見問題'];
+        } elseif (stripos($faq['answer'], '補助') !== false || stripos($faq['answer'], '補貼') !== false) {
+            $quickOptions = ['補助資格', '查看課程', '常見問題'];
+        } elseif (stripos($faq['answer'], '報名') !== false) {
+            $quickOptions = ['報名流程', '查看課程', '常見問題'];
+        }
+
+        return [
+            'content' => $content,
+            'quick_options' => $quickOptions
         ];
     }
 
