@@ -30,26 +30,34 @@ class HumanServiceAgent extends BaseAgent
             $content .= "**您的需求**：{$userNeed}\n\n";
         }
 
-        // 使用 service_info.json 的模板
-        $template = $serviceInfo['response_template']['contact_info'];
+        // 檢測設備類型（PC 或手機）
+        $isMobile = $this->isMobileDevice();
 
-        // 替換模板變數
-        $contactInfo = str_replace(
-            ['{phone}', '{hours}', '{email}', '{line}', '{address}', '{note}'],
-            [
-                $serviceInfo['contact']['phone']['display'],
-                $serviceInfo['service_hours']['weekdays'],
-                $serviceInfo['contact']['email']['general'],
-                $serviceInfo['contact']['line']['id'],
-                $serviceInfo['contact']['address']['full'],
-                $serviceInfo['contact']['address']['note']
-            ],
-            $template
-        );
+        // LINE 聯絡資訊（根據設備類型顯示不同內容）
+        $content .= "**📱 LINE 官方帳號**\n";
+        $content .= "LINE ID：{$serviceInfo['contact']['line']['id']}\n\n";
 
-        $content .= $contactInfo;
+        if ($isMobile) {
+            // 手機版：提供連結
+            $content .= "<a href='https://lin.ee/2qmqoSH' target='_blank' style='display: inline-block; padding: 12px 24px; background: linear-gradient(to right, #06c755, #05b34a); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>加入 LINE 官方帳號</a>\n\n";
+        } else {
+            // 電腦版：顯示 QR Code
+            $content .= "<div style='text-align: center; margin: 20px 0;'>";
+            $content .= "<img src='/images/line@.png' alt='LINE QR Code' style='width: 200px; height: 200px; border: 4px solid #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);' />";
+            $content .= "<p style='margin-top: 10px; font-size: 14px; color: #666;'>使用手機掃描 QR Code 加入</p>";
+            $content .= "</div>\n\n";
+        }
 
-        $content .= "\n\n💡 建議：\n";
+        // 其他聯絡方式
+        $content .= "**☎️ 電話**：{$serviceInfo['contact']['phone']['display']}\n";
+        $content .= "服務時間：{$serviceInfo['service_hours']['weekdays']}\n\n";
+
+        $content .= "**✉️ Email**：{$serviceInfo['contact']['email']['general']}\n\n";
+
+        $content .= "**🏢 地址**：{$serviceInfo['contact']['address']['full']}\n";
+        $content .= "{$serviceInfo['contact']['address']['note']}\n\n";
+
+        $content .= "💡 建議：\n";
         $content .= "• 電話聯絡最快速\n";
         $content .= "• LINE 留言我們會盡快回覆\n";
         $content .= "• 歡迎直接到中心洽詢";
@@ -58,6 +66,16 @@ class HumanServiceAgent extends BaseAgent
             'content' => $content,
             'quick_options' => ['回主選單', '查看課程', '補助資格']
         ];
+    }
+
+    /**
+     * 檢測是否為手機設備
+     */
+    protected function isMobileDevice()
+    {
+        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+
+        return preg_match('/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i', $userAgent);
     }
 
     /**
