@@ -97,15 +97,19 @@ class SubsidyAgent extends BaseAgent
             $content .= "補助比例：{$rule['subsidy_rate']}\n";
             $content .= "{$rule['description']}\n\n";
 
-            $content .= "📌 **申請条件**：\n";
-            foreach ($rule['requirements'] as $req) {
-                $content .= "• {$req}\n";
+            if (isset($rule['requirements'])) {
+                $content .= "📌 **申請条件**：\n";
+                foreach ($rule['requirements'] as $req) {
+                    $content .= "• {$req}\n";
+                }
             }
 
             if (isset($rule['special_identities'])) {
                 $content .= "\n✨ **特定身份**（可享100%補助）：\n";
                 foreach (array_slice($rule['special_identities'], 0, 5) as $identity) {
-                    $content .= "• {$identity}\n";
+                    // 支援新舊格式：陣列格式提取 name，字串格式直接使用
+                    $identityName = is_array($identity) ? $identity['name'] : $identity;
+                    $content .= "• {$identityName}\n";
                 }
                 if (count($rule['special_identities']) > 5) {
                     $content .= "• ...等\n";

@@ -5,12 +5,69 @@ namespace App\Services\Agents;
 class ClassificationAgent extends BaseAgent
 {
     /**
+     * 快速按鈕路由映射表
+     *
+     * 格式：'按鈕文字' => ['agent' => '代理名稱', 'action' => '方法名', 'type' => '類型', ...]
+     */
+    protected $quickButtonRoutes = [
+        // Main Menu
+        '課程查詢' => ['action' => 'showCourseMenu'],
+        '補助諮詢' => ['action' => 'showSubsidyMenu'],
+        '報名流程' => ['agent' => 'enrollment'],
+        '聯絡客服' => ['agent' => 'human_service'],
+
+        // Course Menu
+        '待業課程' => ['agent' => 'course', 'type' => 'unemployed'],
+        '在職課程' => ['agent' => 'course', 'type' => 'employed'],
+        '熱門課程' => ['agent' => 'course', 'type' => 'featured'],
+        '搜尋課程' => ['action' => 'promptCourseSearch'],
+
+        // Subsidy Menu
+        '我是在職者' => ['agent' => 'subsidy', 'status' => 'employed'],
+        '我是待業者' => ['agent' => 'subsidy', 'status' => 'unemployed'],
+        '不確定身份' => ['action' => 'showSubsidyHelp'],
+
+        // Greeting Quick Options
+        '查看課程清單' => ['action' => 'showCourseMenu'],
+        '補助資格確認' => ['action' => 'showSubsidyMenu'],
+        '常見問題' => ['agent' => 'faq'],
+        '查看更多課程' => ['agent' => 'course', 'type' => 'featured'],
+        '回到主選單' => ['action' => 'showMainMenu'],
+        '聯絡真人客服' => ['agent' => 'human_service'],
+
+        // Related Questions - Course
+        '報名截止時間' => ['agent' => 'faq', 'keyword' => '截止'],
+        '上課地點' => ['agent' => 'faq', 'keyword' => '地點'],
+        '課程費用' => ['agent' => 'faq', 'keyword' => '費用'],
+        '補助資訊' => ['agent' => 'subsidy'],
+        '如何報名' => ['agent' => 'enrollment'],
+
+        // Related Questions - Subsidy
+        '需要什麼文件' => ['agent' => 'subsidy', 'keyword' => '證明'],
+        '需要什麼證明文件' => ['agent' => 'subsidy', 'keyword' => '證明'],
+        '補助多少錢' => ['agent' => 'faq', 'keyword' => '補助金額'],
+        '何時撥款' => ['agent' => 'faq', 'keyword' => '撥款'],
+        '申請流程' => ['agent' => 'subsidy'],
+
+        // Related Questions - Enrollment
+        '報名方式' => ['agent' => 'enrollment'],
+        '需要準備什麼' => ['agent' => 'faq', 'keyword' => '準備'],
+        '甄試流程' => ['agent' => 'faq', 'keyword' => '甄試'],
+        '錄取通知' => ['agent' => 'faq', 'keyword' => '錄取'],
+    ];
+
+    /**
      * 處理用戶訊息
      */
     public function handle($userMessage)
     {
         $lastAction = $this->session->getContext('last_action');
         $trimmed = trim($userMessage);
+
+        // 【優先 0】快速按鈕檢查（最高優先級）
+        if ($route = $this->matchQuickButton($trimmed)) {
+            return $this->routeQuickButton($route, $trimmed);
+        }
 
         // 【優先 1】純數字 + 課程上下文
         if (preg_match('/^[0-9]+$/', $trimmed) &&
@@ -55,7 +112,7 @@ class ClassificationAgent extends BaseAgent
                 return $this->handleHumanService($userMessage);
 
             case 9: // 未知/其他
-                return $this->handleUnknownFromJSON();
+                return $this->handleUnknownFromJSON($userMessage);
 
             default:
                 return $this->errorResponse();
@@ -182,10 +239,28 @@ EOT;
     }
 
     /**
-     * 處理未知問題（使用 JSON 配置）
+     * 處理未知問題（先查詢 FAQ，再使用 JSON 配置）
      */
-    protected function handleUnknownFromJSON()
+    protected function handleUnknownFromJSON($userMessage)
     {
+        // 【優化 1】先嘗試從 FAQ 中查找答案
+        try {
+            $faqAgent = app(\App\Services\Agents\FAQAgent::class);
+            $faqResult = $faqAgent->handle($userMessage);
+
+            // 如果 FAQ 找到相關答案，直接返回
+            if ($faqResult && isset($faqResult['content'])) {
+                // 檢查是否為「找不到」的回應（避免循環回退）
+                if (stripos($faqResult['content'], '很抱歉') === false &&
+                    stripos($faqResult['content'], '无法完全理解') === false) {
+                    return $faqResult;
+                }
+            }
+        } catch (\Exception $e) {
+            // FAQ 查詢失敗，繼續執行原本的回退機制
+        }
+
+        // 【優化 2】如果 FAQ 沒找到，使用原本的未知回應
         $unknownData = $this->rag->getDefaultResponse('unknown');
 
         if ($unknownData) {
@@ -242,5 +317,196 @@ EOT;
 
 請用繁體中文回答，保持簡潔友善的語氣。
 EOT;
+    }
+
+    /**
+     * 匹配快速按鈕
+     *
+     * @param string $message 用戶訊息
+     * @return array|null 路由配置或 null
+     */
+    protected function matchQuickButton($message)
+    {
+        $trimmed = trim($message);
+
+        // 精確匹配
+        if (isset($this->quickButtonRoutes[$trimmed])) {
+            return $this->quickButtonRoutes[$trimmed];
+        }
+
+        // 模糊匹配（去除空格、標點符號）
+        $normalized = preg_replace('/[\s\p{P}]/u', '', $trimmed);
+
+        foreach ($this->quickButtonRoutes as $button => $route) {
+            $normalizedButton = preg_replace('/[\s\p{P}]/u', '', $button);
+            if ($normalized === $normalizedButton) {
+                return $route;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 路由快速按鈕到對應處理
+     *
+     * @param array $route 路由配置
+     * @param string $message 原始訊息
+     * @return array
+     */
+    protected function routeQuickButton($route, $message)
+    {
+        // 如果有 action，調用本地方法
+        if (isset($route['action'])) {
+            $action = $route['action'];
+            if (method_exists($this, $action)) {
+                return $this->$action();
+            }
+        }
+
+        // 如果有 agent，路由到對應代理
+        if (isset($route['agent'])) {
+            switch ($route['agent']) {
+                case 'course':
+                    return $this->routeToCourseAgent($route, $message);
+
+                case 'subsidy':
+                    return $this->routeToSubsidyAgent($route, $message);
+
+                case 'faq':
+                    return $this->routeToFAQAgent($route, $message);
+
+                case 'enrollment':
+                    return $this->handleEnrollment($message);
+
+                case 'human_service':
+                    return $this->handleHumanService($message);
+            }
+        }
+
+        // 備用：返回錯誤
+        return $this->errorResponse();
+    }
+
+    /**
+     * 路由到課程代理
+     */
+    protected function routeToCourseAgent($route, $message)
+    {
+        $courseAgent = app(\App\Services\Agents\CourseAgent::class);
+
+        // 根據 type 設定 session 上下文或修改訊息
+        if (isset($route['type'])) {
+            switch ($route['type']) {
+                case 'unemployed':
+                    return $courseAgent->handle('待業課程');
+
+                case 'employed':
+                    return $courseAgent->handle('在職課程');
+
+                case 'featured':
+                    return $courseAgent->handle('熱門課程');
+            }
+        }
+
+        return $courseAgent->handle($message);
+    }
+
+    /**
+     * 路由到補助代理
+     */
+    protected function routeToSubsidyAgent($route, $message)
+    {
+        $subsidyAgent = app(\App\Services\Agents\SubsidyAgent::class);
+
+        // 如果有 status，設定 session
+        if (isset($route['status'])) {
+            $this->session->setContext('employment_status', $route['status']);
+        }
+
+        // 如果有 keyword，用於證明文件查詢
+        if (isset($route['keyword'])) {
+            return $subsidyAgent->handle($route['keyword']);
+        }
+
+        return $subsidyAgent->handle($message);
+    }
+
+    /**
+     * 路由到 FAQ 代理
+     */
+    protected function routeToFAQAgent($route, $message)
+    {
+        $faqAgent = app(\App\Services\Agents\FAQAgent::class);
+
+        // 如果有 keyword，使用關鍵字搜尋
+        if (isset($route['keyword'])) {
+            return $faqAgent->handle($route['keyword']);
+        }
+
+        return $faqAgent->handle($message);
+    }
+
+    /**
+     * 顯示課程選單
+     */
+    protected function showCourseMenu()
+    {
+        $courseMenu = $this->getQuickOptionsFromConfig('course_menu');
+
+        return [
+            'content' => "📚 **課程查詢**\n\n虹宇職訓提供多元化的職業訓練課程，包括：\n\n• **待業課程**：適合目前待業或失業者，政府提供80-100%補助\n• **在職課程**：適合在職勞工進修，政府補助80-100%\n• **熱門課程**：查看最受歡迎的精選課程\n\n請選擇您想查看的課程類型：",
+            'quick_options' => $courseMenu
+        ];
+    }
+
+    /**
+     * 顯示補助選單
+     */
+    protected function showSubsidyMenu()
+    {
+        $subsidyMenu = $this->getQuickOptionsFromConfig('subsidy_menu');
+
+        return [
+            'content' => "💰 **補助諮詢**\n\n為了提供正確的補助資訊，請問您目前的就業狀況是？\n\n📋 **補助類型說明**：\n\n**在職者補助**\n• 適用：目前有工作，投保勞保/就保\n• 補助：80%（特定身份可100%）\n• 上課：週末上課\n\n**待業者補助**\n• 適用：目前失業，待業中\n• 補助：80-100%\n• 上課：週一至週五全日制",
+            'quick_options' => $subsidyMenu
+        ];
+    }
+
+    /**
+     * 顯示主選單
+     */
+    protected function showMainMenu()
+    {
+        $mainMenu = $this->getQuickOptionsFromConfig('main_menu');
+
+        return [
+            'content' => "🏠 **主選單**\n\n您好！我是虹宇職訓的智能客服小幫手 👋\n\n我可以協助您：\n• 📚 查詢課程資訊\n• 💰 了解補助資格\n• 📝 報名流程說明\n• ☎️ 聯絡真人客服\n\n請問有什麼可以幫您的呢？",
+            'quick_options' => $mainMenu
+        ];
+    }
+
+    /**
+     * 顯示補助身份判斷引導
+     */
+    protected function showSubsidyHelp()
+    {
+        return [
+            'content' => "💡 **如何判斷您的就業身份**\n\n**在職者**\n✅ 目前有工作\n✅ 有投保勞保、就保、職災保或農保\n✅ 課程通常在週末上課\n\n**待業者**\n✅ 目前沒有工作\n✅ 正在找工作或待業中\n✅ 課程通常是全日制（週一至週五）\n\n**還是不確定？**\n您可以：\n1. 聯絡客服：03-4227723\n2. LINE：@ouy9482x\n3. 我們會協助您判斷適合的補助類型",
+            'quick_options' => ['我是在職者', '我是待業者', '聯絡客服']
+        ];
+    }
+
+    /**
+     * 提示用戶輸入課程搜尋關鍵字
+     */
+    protected function promptCourseSearch()
+    {
+        $this->session->setContext('last_action', 'prompt_search');
+
+        return [
+            'content' => "🔍 **課程搜尋**\n\n請輸入您想搜尋的關鍵字，例如：\n• AI\n• 行銷\n• 設計\n• 程式設計\n• 數位行銷\n\n我會為您找出相關的課程。",
+            'quick_options' => ['待業課程', '在職課程', '熱門課程', '回到主選單']
+        ];
     }
 }

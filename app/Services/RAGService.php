@@ -49,7 +49,7 @@ class RAGService
     }
 
     /**
-     * 關鍵字搜索
+     * 關鍵字搜索（優化版：權重評分）
      *
      * @param array $courses
      * @param string $keyword
@@ -57,33 +57,47 @@ class RAGService
      */
     protected function searchByKeyword($courses, $keyword)
     {
-        return array_filter($courses, function($course) use ($keyword) {
-            // 搜尋課程名稱
-            if (stripos($course['course_name'], $keyword) !== false) {
-                return true;
+        $results = [];
+
+        foreach ($courses as $course) {
+            $score = 0;
+
+            // 課程名稱匹配 → 最高分 (10分)
+            if (isset($course['course_name']) && stripos($course['course_name'], $keyword) !== false) {
+                $score += 10;
             }
 
-            // 搜尋完整名稱
+            // 完整名稱匹配 → 高分 (8分)
             if (isset($course['full_name']) && stripos($course['full_name'], $keyword) !== false) {
-                return true;
+                $score += 8;
             }
 
-            // 搜尋內容
-            if (isset($course['content']) && stripos($course['content'], $keyword) !== false) {
-                return true;
-            }
-
-            // 搜尋關鍵字陣列
+            // 關鍵字陣列匹配 → 中分 (5分)
             if (isset($course['keywords'])) {
                 foreach ($course['keywords'] as $kw) {
                     if (stripos($kw, $keyword) !== false) {
-                        return true;
+                        $score += 5;
+                        break;
                     }
                 }
             }
 
-            return false;
-        });
+            // 內容匹配 → 低分 (1分)
+            if (isset($course['content']) && stripos($course['content'], $keyword) !== false) {
+                $score += 1;
+            }
+
+            // 只保留有分數的結果
+            if ($score > 0) {
+                $results[] = ['course' => $course, 'score' => $score];
+            }
+        }
+
+        // 按分數降序排序
+        usort($results, fn($a, $b) => $b['score'] <=> $a['score']);
+
+        // 只返回課程資料
+        return array_values(array_map(fn($r) => $r['course'], $results));
     }
 
     /**
@@ -156,7 +170,7 @@ class RAGService
     }
 
     /**
-     * 查詢FAQ
+     * 查詢FAQ（優化版：權重評分）
      *
      * @param string|null $keyword
      * @return array
@@ -171,38 +185,52 @@ class RAGService
         }
 
         $results = [];
+
         foreach ($faqs as $faq) {
-            // 搜尋問題
-            if (stripos($faq['question'], $keyword) !== false) {
-                $results[] = $faq;
-                continue;
+            $score = 0;
+
+            // 問題標題完全匹配 → 最高分 (10分)
+            if (isset($faq['question']) && stripos($faq['question'], $keyword) !== false) {
+                $score += 10;
             }
 
-            // 搜尋答案
-            if (stripos($faq['answer'], $keyword) !== false) {
-                $results[] = $faq;
-                continue;
-            }
-
-            // 搜尋關鍵字
+            // 關鍵字陣列匹配 → 中分 (5分)
             if (isset($faq['keywords'])) {
                 foreach ($faq['keywords'] as $kw) {
                     if (stripos($kw, $keyword) !== false) {
-                        $results[] = $faq;
+                        $score += 5;
                         break;
                     }
                 }
             }
+
+            // 答案內容匹配 → 低分 (1分)
+            if (isset($faq['answer']) && stripos($faq['answer'], $keyword) !== false) {
+                $score += 1;
+            }
+
+            // 只保留高分結果（分數 >= 5，避免答案內容的低分匹配）
+            if ($score >= 5) {
+                $results[] = [
+                    'faq' => $faq,
+                    'score' => $score,
+                    'priority' => $faq['priority'] ?? 999
+                ];
+            }
         }
 
-        // 按優先級排序
+        // 先按分數排序，再按優先級排序
         usort($results, function($a, $b) {
-            $priorityA = $a['priority'] ?? 999;
-            $priorityB = $b['priority'] ?? 999;
-            return $priorityA <=> $priorityB;
+            // 優先比較分數
+            if ($a['score'] !== $b['score']) {
+                return $b['score'] <=> $a['score'];
+            }
+            // 分數相同時比較優先級
+            return $a['priority'] <=> $b['priority'];
         });
 
-        return $results;
+        // 只返回 FAQ 資料
+        return array_values(array_map(fn($r) => $r['faq'], $results));
     }
 
     /**
