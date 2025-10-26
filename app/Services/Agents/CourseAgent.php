@@ -209,7 +209,7 @@ class CourseAgent extends BaseAgent
     }
 
     /**
-     * 處理特定課程查詢（使用相對編號 - 上下文感知）
+     * 處理特定課程查詢（上下文感知：支援相對/絕對編號）
      */
     protected function handleSpecificCourse($message)
     {
@@ -222,8 +222,9 @@ class CourseAgent extends BaseAgent
 
         $number = (int)$matches[0];
 
-        // 從 Session 中取得當前課程清單
+        // 從 Session 中取得當前課程清單和顯示 offset
         $courseList = $this->session->getContext('current_course_list');
+        $currentOffset = $this->session->getContext('display_offset', 0);
 
         if (empty($courseList)) {
             return [
@@ -232,14 +233,37 @@ class CourseAgent extends BaseAgent
             ];
         }
 
-        // 使用相對編號查找（編號從1開始，陣列索引從0開始）
-        $courseIndex = $number - 1;
+        $totalCourses = count($courseList);
+        $pageSize = 5;
 
-        if (!isset($courseList[$courseIndex])) {
-            $totalCourses = count($courseList);
+        // 計算當前頁面顯示的範圍
+        $currentPageStart = $currentOffset + 1;
+        $currentPageEnd = min($currentOffset + $pageSize, $totalCourses);
+        $currentPageSize = $currentPageEnd - $currentPageStart + 1;
+
+        // 智能判斷用戶輸入的編號類型
+        if ($number >= $currentPageStart && $number <= $currentPageEnd) {
+            // 情況1：用戶輸入的編號在當前頁面顯示範圍內（絕對編號）
+            $courseIndex = $number - 1;
+        } elseif ($number >= 1 && $number <= $currentPageSize) {
+            // 情況2：用戶輸入的編號在當前頁面項目數範圍內（相對編號）
+            // 理解為「當前頁面的第N個項目」
+            $courseIndex = $currentOffset + $number - 1;
+        } else {
+            // 情況3：編號超出有效範圍
             return [
-                'content' => "編號 {$number} 超出範圍。\n\n目前清單共有 {$totalCourses} 門課程，請輸入 1-{$totalCourses} 之間的編號。",
-                'quick_options' => ['重新查看清單', '待業課程', '在職課程']
+                'content' => "編號 {$number} 不在當前頁面範圍內。\n\n💡 **當前頁面顯示**：編號 {$currentPageStart}-{$currentPageEnd}\n或輸入 1-{$currentPageSize} 查看當前頁面的第 N 個課程。",
+                'quick_options' => $currentOffset + $pageSize < $totalCourses
+                    ? ['更多', '補助資格', '聯絡客服']
+                    : ['補助資格', '如何報名', '聯絡客服']
+            ];
+        }
+
+        // 安全檢查：確保索引有效
+        if (!isset($courseList[$courseIndex])) {
+            return [
+                'content' => "發生錯誤：無法找到課程資料。\n\n請重新查看課程清單。",
+                'quick_options' => ['待業課程', '在職課程', '精選課程']
             ];
         }
 
