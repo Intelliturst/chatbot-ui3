@@ -299,6 +299,25 @@ class RAGService
     }
 
     /**
+     * 查詢補助證明文件
+     *
+     * @param string $employmentStatus 'employed' 或 'unemployed'
+     * @param string|null $identityId 特定身份ID（可選）
+     * @return array|null
+     */
+    public function getSubsidyDocuments($employmentStatus, $identityId = null)
+    {
+        $documentsData = $this->loadJSON('subsidy/subsidy_documents.json');
+        $documents = $documentsData['documents'][$employmentStatus] ?? [];
+
+        if ($identityId !== null) {
+            return $documents[$identityId] ?? null;
+        }
+
+        return $documents;
+    }
+
+    /**
      * 載入JSON文件
      *
      * @param string $filename

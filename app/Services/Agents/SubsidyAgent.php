@@ -79,6 +79,11 @@ class SubsidyAgent extends BaseAgent
 
         $typeName = $employmentStatus === 'employed' ? '在職' : '待業';
 
+        // 檢查是否詢問證明文件
+        if ($this->isAskingAboutDocuments($message)) {
+            return $this->provideDocumentInfo($employmentStatus);
+        }
+
         // 检查是否询问特定身份
         if ($this->isAskingAboutSpecialIdentity($message)) {
             return $this->provideSpecialIdentityInfo($employmentStatus, $rules);
@@ -133,22 +138,30 @@ class SubsidyAgent extends BaseAgent
     }
 
     /**
+     * 检查是否询问證明文件
+     */
+    protected function isAskingAboutDocuments($message)
+    {
+        return preg_match('/(證明|证明|文件|檔案|资料|資料|要準備|要准备|需要什麼|需要什么|要帶什麼|要带什么|申請資料|申请资料|檢附|检附)/ui', $message);
+    }
+
+    /**
      * 提供特定身份資訊
      */
     protected function provideSpecialIdentityInfo($employmentStatus, $rules)
     {
         $typeName = $employmentStatus === 'employed' ? '在職' : '待業';
 
-        // 找到特定身份規則
+        // 找到特定身份規則（100%補助）
         $specialRule = null;
         foreach ($rules['rules'] as $rule) {
-            if (isset($rule['special_identities']) || $rule['subsidy_rate'] === '100%') {
+            if ($rule['subsidy_rate'] === '100%') {
                 $specialRule = $rule;
                 break;
             }
         }
 
-        if (!$specialRule) {
+        if (!$specialRule || !isset($specialRule['special_identities'])) {
             return [
                 'content' => "目前{$typeName}者可享基本補助。\n\n如需了解更多，請聯絡客服：03-4227723",
                 'quick_options' => ['查看課程', '報名流程', '聯絡客服']
@@ -156,39 +169,48 @@ class SubsidyAgent extends BaseAgent
         }
 
         $content = "✨ **{$typeName}者特定身份補助（100%）**\n\n";
+        $content .= "以下身份可享**全額補助**：\n\n";
 
-        if ($employmentStatus === 'unemployed') {
-            $content .= "以下身份可享**全额補助**：\n\n";
+        // 顯示特定身份清單（限制顯示數量避免訊息過長）
+        $identities = $specialRule['special_identities'];
+        $displayLimit = $employmentStatus === 'employed' ? 10 : 15;
 
-            if (isset($specialRule['conditions'])) {
-                foreach ($specialRule['conditions'] as $condition) {
-                    $content .= "**{$condition['type']}**\n";
-                    if (isset($condition['list'])) {
-                        foreach ($condition['list'] as $item) {
-                            $content .= "• {$item}\n";
-                        }
-                    } elseif (isset($condition['description'])) {
-                        $content .= "• {$condition['description']}\n";
+        foreach (array_slice($identities, 0, $displayLimit) as $index => $identity) {
+            $identityName = is_array($identity) ? $identity['name'] : $identity;
+            $content .= ($index + 1) . ". {$identityName}\n";
+
+            // 如果有詳細條件，顯示簡要說明
+            if (is_array($identity) && isset($identity['criteria'])) {
+                $criteria = $identity['criteria'];
+
+                // 顯示年齡範圍
+                if (isset($criteria['age_range'])) {
+                    $content .= "   ▸ {$criteria['age_range']}\n";
+                }
+
+                // 顯示簡要描述
+                if (isset($criteria['description'])) {
+                    $description = $criteria['description'];
+                    // 限制描述長度
+                    if (mb_strlen($description) > 50) {
+                        $description = mb_substr($description, 0, 47) . '...';
                     }
-                    $content .= "\n";
+                    $content .= "   ▸ {$description}\n";
                 }
             }
-        } else {
-            $content .= "符合以下身份的在職者，可申請**100%補助**：\n\n";
 
-            if (isset($specialRule['special_identities'])) {
-                foreach ($specialRule['special_identities'] as $identity) {
-                    $content .= "• {$identity}\n";
-                }
-            }
+            $content .= "\n";
         }
 
-        $content .= "\n📋 **需准备文件**：\n";
-        if (isset($specialRule['documents_required'])) {
-            foreach ($specialRule['documents_required'] as $doc) {
-                $content .= "• {$doc}\n";
-            }
+        if (count($identities) > $displayLimit) {
+            $remaining = count($identities) - $displayLimit;
+            $content .= "...以及其他 {$remaining} 種身份\n\n";
         }
+
+        $content .= "📋 **申請提醒**：\n";
+        $content .= "• 請準備相關身份證明文件\n";
+        $content .= "• 證明文件有效期需包含開訓日\n";
+        $content .= "• 詳細文件清單請詢問「需要什麼證明文件」\n";
 
         if (isset($specialRule['note'])) {
             $content .= "\n⚠️ {$specialRule['note']}";
@@ -196,7 +218,58 @@ class SubsidyAgent extends BaseAgent
 
         return [
             'content' => $content,
-            'quick_options' => ['我符合', '我不符合', '查看課程', '聯絡客服']
+            'quick_options' => ['需要什麼證明文件', '查看課程', '報名流程', '聯絡客服']
+        ];
+    }
+
+    /**
+     * 提供證明文件資訊
+     */
+    protected function provideDocumentInfo($employmentStatus)
+    {
+        $typeName = $employmentStatus === 'employed' ? '在職' : '待業';
+        $documents = $this->ragService->getSubsidyDocuments($employmentStatus);
+
+        if (!$documents) {
+            return [
+                'content' => "抱歉，暫時無法取得{$typeName}者的證明文件資訊。\n\n如需協助，請聯絡客服：03-4227723",
+                'quick_options' => ['查看課程', '補助資格', '聯絡客服']
+            ];
+        }
+
+        $content = "📋 **{$typeName}者補助證明文件**\n\n";
+        $content .= "根據您的身份，可能需要準備以下證明文件：\n\n";
+
+        $identityCount = 0;
+        foreach ($documents as $identityId => $docInfo) {
+            $identityCount++;
+
+            // 限制顯示前8個身份，避免訊息過長
+            if ($identityCount > 8) {
+                $content .= "\n⚠️ **還有更多身份類別**\n";
+                $content .= "若您的身份未列在上方，或需要更詳細的說明，請聯絡客服：03-4227723\n";
+                break;
+            }
+
+            $content .= "**" . ($identityCount) . ". {$docInfo['identity_name']}**\n";
+
+            if (isset($docInfo['required_documents']) && is_array($docInfo['required_documents'])) {
+                foreach ($docInfo['required_documents'] as $doc) {
+                    $content .= "  • {$doc}\n";
+                }
+            }
+
+            $content .= "\n";
+        }
+
+        $content .= "💡 **貼心提醒**：\n";
+        $content .= "• 所有證明文件請準備影本\n";
+        $content .= "• 有效期限需包含開訓日當日\n";
+        $content .= "• 實際所需文件以開課單位要求為準\n";
+
+        return [
+            'content' => $content,
+            'quick_options' => ['我符合特定身份嗎', '查看課程', '報名流程', '聯絡客服']
         ];
     }
 

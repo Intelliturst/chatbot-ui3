@@ -1,0 +1,247 @@
+{
+  "category": "補助證明文件清單",
+  "description": "各類補助身份所需檢附的證明文件",
+  "documents": {
+    "employed": {
+      "employed_special_001": {
+        "identity_name": "低收入戶或中低收入戶中有工作能力者",
+        "required_documents": [
+          "縣市政府或鄉鎮(區)公所開立之低收入戶或中低收入戶身分證明文件或低收入戶卡或中低收入戶卡影本一份",
+          "有效期限應包含開訓日當日",
+          "若證明文件未載明身分證號碼及住址者，應檢附國民身分證正反面影本或新式戶口名簿影本一份"
+        ]
+      },
+      "employed_special_002": {
+        "identity_name": "原住民",
+        "required_documents": [
+          "有原住民身分記載之證明文件（新式戶口名簿影本）"
+        ]
+      },
+      "employed_special_003": {
+        "identity_name": "身心障礙者",
+        "required_documents": [
+          "身心障礙證明正反面影本一份，且有效期限至開訓日當日",
+          "或持逾有效期限但經直轄市、縣(市)主管機關註記展延期限之身心障礙證明"
+        ]
+      },
+      "employed_special_004": {
+        "identity_name": "中高齡者",
+        "required_documents": [
+          "年滿45歲至65歲(含)之身分證正反面影本一份"
+        ]
+      },
+      "employed_special_005": {
+        "identity_name": "逾65歲之高齡者",
+        "required_documents": [
+          "足茲證明已逾65歲之身分證正反面影本一份"
+        ]
+      },
+      "employed_special_006": {
+        "identity_name": "獨力負擔家計者",
+        "required_documents": [
+          "新式戶口名簿影本（須有現住人口詳細記事）或戶籍謄本影本（須有現住人口詳細記事）一份",
+          "併同檢附相關文件：",
+          "【配偶死亡】相關證明",
+          "【配偶失蹤】報案紀錄文件（達6個月以上未尋獲）",
+          "【離婚】戶籍資料證明",
+          "【受家庭暴力】訴訟案件證明",
+          "【配偶入獄】入獄、羈押或拘禁通知文件",
+          "【配偶服役】徵集、召集通知文件",
+          "【配偶傷病】醫療機構診斷證明文件",
+          "【其他特殊情況】公文或轉介單",
+          "【在學證明】25歲(含)以下在國內公私立學校就讀證明（不包含空中專科及大學、高級中等以上進修學校、在職班、學分班、僅於夜間或假日上課或遠距教學，15~25歲方需檢附）",
+          "【無工作能力證明】罹患重大傷、病，經醫療機構診斷必須治療或療養3個月以上之診斷證明文件正本"
+        ]
+      },
+      "employed_special_007": {
+        "identity_name": "家庭暴力被害人",
+        "required_documents": [
+          "下列文件之一：",
+          "直轄市、縣(市)政府開立之家庭暴力被害人身分證明文件",
+          "保護令（通常保護令、暫時保護令、緊急保護令）影本",
+          "判決書影本"
+        ]
+      },
+      "employed_special_008": {
+        "identity_name": "更生受保護人",
+        "required_documents": [
+          "受保護人(管束)身分證明文件",
+          "更生保護人身分證明書"
+        ]
+      },
+      "employed_special_009": {
+        "identity_name": "其他依就業服務法第24條規定經中央主管機關認為有必要者",
+        "required_documents": [
+          "相關主管機關證明文件"
+        ]
+      },
+      "employed_special_010": {
+        "identity_name": "犯罪被害人及其家屬",
+        "required_documents": [
+          "由財團法人犯罪被害人保護協會出具之證明單"
+        ]
+      }
+    },
+    "unemployed": {
+      "unemployed_insurance_001": {
+        "identity_name": "就業保險被保險人非自願離職失業者",
+        "required_documents": [
+          "國民身分證正反面影本",
+          "公立就業服務機構開立之職業訓練推介單",
+          "最後離職投保單位所出具非自願離職事由之證明文件"
+        ]
+      },
+      "unemployed_insurance_002": {
+        "identity_name": "就業保險被保險人自願離職失業者",
+        "required_documents": [
+          "國民身分證正反面影本"
+        ]
+      },
+      "unemployed_special_001": {
+        "identity_name": "獨力負擔家計之失業者",
+        "required_documents": [
+          "國民身分證正反面影本",
+          "註記現住人口及詳細記事之全戶戶口名簿影本",
+          "全戶內年滿15歲至65歲受撫養親屬之在學或無工作能力證明文件影本",
+          "在學證明：25歲以下仍在國內公私立學校就讀",
+          "無工作能力證明：罹患重大傷病，經醫療機構診斷須治療或療養3個月以上",
+          "其他足資證明身分之文件"
+        ]
+      },
+      "unemployed_special_002": {
+        "identity_name": "中高齡之失業者",
+        "required_documents": [
+          "國民身分證正反面影本（年滿45-65歲）"
+        ]
+      },
+      "unemployed_special_003": {
+        "identity_name": "身心障礙之失業者",
+        "required_documents": [
+          "國民身分證正反面影本",
+          "身心障礙證明文件或手冊正反面影本"
+        ]
+      },
+      "unemployed_special_004": {
+        "identity_name": "原住民之失業者",
+        "required_documents": [
+          "國民身分證正反面影本",
+          "註記原住民身分之戶口名簿影本"
+        ]
+      },
+      "unemployed_special_005": {
+        "identity_name": "低收入戶或中低收入戶中有工作能力之失業者",
+        "required_documents": [
+          "國民身分證正反面影本",
+          "低收入戶或中低收入戶身分證明文件影本"
+        ]
+      },
+      "unemployed_special_006": {
+        "identity_name": "長期失業者",
+        "required_documents": [
+          "國民身分證正反面影本",
+          "開訓前1個月內向公立就業服務機構辦理求職登記證明文件",
+          "其他足資證明身分之文件"
+        ]
+      },
+      "unemployed_special_007": {
+        "identity_name": "二度就業婦女之失業者",
+        "required_documents": [
+          "國民身分證正反面影本",
+          "無勞保紀錄者，需再檢附最後任職事業單位出具之服務證明（載明離職日）",
+          "因家庭因素退出職場佐證文件影本（例如親屬重大傷病卡、身心障礙證明、戶口名簿、或切結書等）",
+          "其他足資釋明身分之資料"
+        ]
+      },
+      "unemployed_special_008": {
+        "identity_name": "家暴及性侵害被害人",
+        "required_documents": [
+          "國民身分證正反面影本",
+          "下列證明文件之一：",
+          "直轄市、縣(市)政府開立之家庭暴力及性侵害被害人身分證明文件",
+          "保護令（通常、暫時、緊急保護令）影本",
+          "判決書影本"
+        ]
+      },
+      "unemployed_special_009": {
+        "identity_name": "更生受保護人之失業者",
+        "required_documents": [
+          "國民身分證正反面影本",
+          "更生受保護人身分證明書正本"
+        ]
+      },
+      "unemployed_special_010": {
+        "identity_name": "新住民之失業者",
+        "required_documents": [
+          "註記現住人口及詳細記事之全戶戶口名簿影本",
+          "有效期間之居留證明文件"
+        ]
+      },
+      "unemployed_special_011": {
+        "identity_name": "跨國(境)人口販運被害人之失業者",
+        "required_documents": [
+          "參訓期間有效之臨時停留許可證影本",
+          "勞動部核發之工作許可影本"
+        ]
+      },
+      "unemployed_special_012": {
+        "identity_name": "無戶籍國民之失業者",
+        "required_documents": [
+          "臺灣地區居留證影本"
+        ]
+      },
+      "unemployed_special_013": {
+        "identity_name": "無國籍人民之失業者",
+        "required_documents": [
+          "外僑居留證影本",
+          "勞動部核發之工作許可函影本"
+        ]
+      },
+      "unemployed_special_014": {
+        "identity_name": "因犯罪被害之失業者",
+        "required_documents": [
+          "國民身分證正反面影本",
+          "財團法人犯罪被害人保護協會開立之「因犯罪被害之身分證明書」正本"
+        ]
+      },
+      "unemployed_special_015": {
+        "identity_name": "因重大災害受災之失業者",
+        "required_documents": [
+          "國民身分證正反面影本",
+          "下列受災證明影本之一：",
+          "鄉(鎮、市、區)公所開立之房屋受損證明",
+          "農政機關或單位開立之農作物受損證明",
+          "家屬因重大災害死亡或重傷之證明",
+          "相關政府機關開立之重大災害受災證明文件"
+        ]
+      },
+      "unemployed_special_016": {
+        "identity_name": "受貿易自由化影響失業者",
+        "required_documents": [
+          "國民身分證正反面影本",
+          "屬適用本對象資格條件之勞工相關證明文件"
+        ]
+      },
+      "unemployed_special_017": {
+        "identity_name": "自立少年之失業者",
+        "required_documents": [
+          "國民身分證正反面影本",
+          "地方主管機關開立之自立少年身分證明文件"
+        ]
+      },
+      "unemployed_special_018": {
+        "identity_name": "其他經社工訪視評估確有困難之失業者",
+        "required_documents": [
+          "國民身分證正反面影本",
+          "公立就業服務機構開立之職業訓練推介單"
+        ]
+      },
+      "unemployed_special_019": {
+        "identity_name": "逾65歲之失業者",
+        "required_documents": [
+          "國民身分證正反面影本（逾65歲）"
+        ]
+      }
+    }
+  },
+  "priority": 2
+}
