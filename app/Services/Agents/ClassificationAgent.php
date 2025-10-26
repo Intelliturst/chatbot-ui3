@@ -47,10 +47,10 @@ class ClassificationAgent extends BaseAgent
         '補助資格' => ['action' => 'showSubsidyMenu'],
         '查看課程' => ['action' => 'showCourseMenu'],
 
-        // Related Questions - Course
-        '報名截止時間' => ['agent' => 'faq', 'keyword' => '截止'],
-        '上課地點' => ['agent' => 'faq', 'keyword' => '地點'],
-        '課程費用' => ['agent' => 'faq', 'keyword' => '費用'],
+        // Related Questions - Course（課程相關問題優先路由到 CourseAgent）
+        '報名截止時間' => ['agent' => 'course'],
+        '上課地點' => ['agent' => 'course'],
+        '課程費用' => ['agent' => 'course'],
         '補助資訊' => ['agent' => 'subsidy'],
         '如何報名' => ['agent' => 'enrollment'],
 

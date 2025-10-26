@@ -23,6 +23,9 @@ class CourseAgent extends BaseAgent
         $queryType = $this->detectQueryType($userMessage);
 
         switch ($queryType) {
+            case 'course_question':
+                return $this->handleCourseQuestion($userMessage);
+
             case 'course_content':
                 return $this->handleCourseContent();
 
@@ -54,6 +57,14 @@ class CourseAgent extends BaseAgent
      */
     protected function detectQueryType($message)
     {
+        // 優先檢測課程相關問題（當有 last_course 上下文時）
+        if (preg_match('/(報名截止|截止時間|開課日期|什麼時候開課|上課地點|在哪上課|地點在哪|課程費用|學費|費用多少|多少錢|時數|總時數|上課時間|幾點上課)/ui', $message)) {
+            $lastCourse = $this->session->getContext('last_course');
+            if ($lastCourse) {
+                return 'course_question';
+            }
+        }
+
         // 優先檢測課程內容查詢（當有 last_course 上下文時）
         if (preg_match('/(課程內容|課程詳情|詳細內容|完整內容|課程介紹|教什麼|學什麼)/ui', $message)) {
             $lastCourse = $this->session->getContext('last_course');
@@ -337,6 +348,81 @@ class CourseAgent extends BaseAgent
         return [
             'content' => $content,
             'quick_options' => $quickOptions
+        ];
+    }
+
+    /**
+     * 處理課程相關問題（報名截止、上課地點、費用等）
+     */
+    protected function handleCourseQuestion($message)
+    {
+        $course = $this->session->getContext('last_course');
+
+        if (!$course) {
+            return [
+                'content' => "請先選擇一門課程，再詢問課程相關問題。\n\n您可以：",
+                'quick_options' => ['待業課程', '在職課程', '精選課程']
+            ];
+        }
+
+        $typeName = $course['type'] === 'unemployed' ? '待業' : '在職';
+        $featured = isset($course['featured']) && $course['featured'] ? '⭐ ' : '';
+        $courseName = $course['course_name'];
+
+        // 判斷問題類型並返回對應資訊
+        if (preg_match('/(報名截止|截止時間)/ui', $message)) {
+            $content = "📅 **{$featured}{$courseName}**\n\n";
+            $content .= "**報名截止時間**\n";
+            if (isset($course['schedule']['enrollment_deadline'])) {
+                $content .= "• {$course['schedule']['enrollment_deadline']}\n\n";
+            } else {
+                $content .= "• 請洽詢客服確認最新報名截止日期\n\n";
+            }
+            $content .= "💡 **提醒**：報名截止日期可能因班級狀況調整，建議盡早報名。";
+
+        } elseif (preg_match('/(開課日期|什麼時候開課)/ui', $message)) {
+            $content = "📅 **{$featured}{$courseName}**\n\n";
+            $content .= "**開課日期**\n";
+            if (isset($course['schedule']['start_date'])) {
+                $content .= "• {$course['schedule']['start_date']}\n\n";
+            } else {
+                $content .= "• 請洽詢客服確認最新開課日期\n\n";
+            }
+            $content .= "💡 **上課時間**：{$course['schedule']['class_time']}";
+
+        } elseif (preg_match('/(上課地點|在哪上課|地點在哪)/ui', $message)) {
+            $content = "📍 **{$featured}{$courseName}**\n\n";
+            $content .= "**上課地點**\n";
+            $content .= "• {$course['location']['address']}\n\n";
+            if (isset($course['location']['note'])) {
+                $content .= "💡 {$course['location']['note']}";
+            }
+
+        } elseif (preg_match('/(課程費用|學費|費用多少|多少錢)/ui', $message)) {
+            $content = "💰 **{$featured}{$courseName}**\n\n";
+            $content .= "**課程費用**\n";
+            $content .= "• {$course['fee']['amount']}\n\n";
+            if (isset($course['fee']['note'])) {
+                $content .= "💡 {$course['fee']['note']}";
+            }
+
+        } elseif (preg_match('/(時數|總時數|上課時間|幾點上課)/ui', $message)) {
+            $content = "⏰ **{$featured}{$courseName}**\n\n";
+            $content .= "**課程時數**\n";
+            $content .= "• 總時數：{$course['schedule']['total_hours']}小時\n";
+            $content .= "• 上課時間：{$course['schedule']['class_time']}\n\n";
+            if (isset($course['schedule']['start_date'])) {
+                $content .= "• 開課日期：{$course['schedule']['start_date']}";
+            }
+
+        } else {
+            // 預設返回課程詳情
+            return $this->formatCourseDetail($course);
+        }
+
+        return [
+            'content' => $content,
+            'quick_options' => ['補助資格', '如何報名', '課程內容']
         ];
     }
 
