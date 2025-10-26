@@ -123,9 +123,7 @@ class SubsidyAgent extends BaseAgent
             $content .= "⚠️ **注意事项**：\n{$rules['rules'][0]['note']}";
         }
 
-        $quickOptions = $employmentStatus === 'employed'
-            ? ['我符合特定身份吗', '如何申請補助', '查看課程', '聯絡客服']
-            : ['我符合全额補助吗', '查看課程', '報名流程', '聯絡客服'];
+        $quickOptions = ['查看課程', '如何報名', '聯絡客服'];
 
         return [
             'content' => $content,
@@ -237,7 +235,7 @@ class SubsidyAgent extends BaseAgent
         if (!$documents) {
             return [
                 'content' => "抱歉，暫時無法取得{$typeName}者的證明文件資訊。\n\n如需協助，請聯絡客服：03-4227723",
-                'quick_options' => ['查看課程', '補助資格', '聯絡客服']
+                'quick_options' => ['課程列表', '補助資格', '聯絡客服']
             ];
         }
 
@@ -273,7 +271,7 @@ class SubsidyAgent extends BaseAgent
 
         return [
             'content' => $content,
-            'quick_options' => ['我符合特定身份嗎', '查看課程', '報名流程', '聯絡客服']
+            'quick_options' => ['查看課程', '如何報名', '聯絡客服']
         ];
     }
 

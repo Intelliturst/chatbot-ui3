@@ -21,11 +21,18 @@ class ClassificationAgent extends BaseAgent
         '在職課程' => ['agent' => 'course', 'type' => 'employed'],
         '熱門課程' => ['agent' => 'course', 'type' => 'featured'],
         '搜尋課程' => ['action' => 'promptCourseSearch'],
+        '更多' => ['agent' => 'course', 'action' => 'pagination'],
+        '查看完整內容' => ['agent' => 'course', 'action' => 'course_content'],
+        '更多課程' => ['agent' => 'course', 'type' => 'featured'],
 
         // Subsidy Menu
         '我是在職者' => ['agent' => 'subsidy', 'status' => 'employed'],
         '我是待業者' => ['agent' => 'subsidy', 'status' => 'unemployed'],
         '不確定身份' => ['action' => 'showSubsidyHelp'],
+
+        // Simplified Subsidy Buttons
+        '在職者' => ['agent' => 'subsidy', 'status' => 'employed'],
+        '待業者' => ['agent' => 'subsidy', 'status' => 'unemployed'],
 
         // Greeting Quick Options
         '查看課程清單' => ['action' => 'showCourseMenu'],
@@ -34,6 +41,11 @@ class ClassificationAgent extends BaseAgent
         '查看更多課程' => ['agent' => 'course', 'type' => 'featured'],
         '回到主選單' => ['action' => 'showMainMenu'],
         '聯絡真人客服' => ['agent' => 'human_service'],
+
+        // General Quick Options (課程列表, 補助資格)
+        '課程列表' => ['action' => 'showCourseMenu'],
+        '補助資格' => ['action' => 'showSubsidyMenu'],
+        '查看課程' => ['action' => 'showCourseMenu'],
 
         // Related Questions - Course
         '報名截止時間' => ['agent' => 'faq', 'keyword' => '截止'],

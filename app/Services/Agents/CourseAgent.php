@@ -23,6 +23,9 @@ class CourseAgent extends BaseAgent
         $queryType = $this->detectQueryType($userMessage);
 
         switch ($queryType) {
+            case 'course_content':
+                return $this->handleCourseContent();
+
             case 'pagination':
                 return $this->handlePagination();
 
@@ -51,6 +54,14 @@ class CourseAgent extends BaseAgent
      */
     protected function detectQueryType($message)
     {
+        // 優先檢測課程內容查詢（當有 last_course 上下文時）
+        if (preg_match('/(課程內容|課程詳情|詳細內容|完整內容|課程介紹|教什麼|學什麼)/ui', $message)) {
+            $lastCourse = $this->session->getContext('last_course');
+            if ($lastCourse) {
+                return 'course_content';
+            }
+        }
+
         // 優先檢測分頁請求（更多、剩下的）
         if (preg_match('/(更多|剩下|還有|繼續)/ui', $message)) {
             $lastAction = $this->session->getContext('last_action');
@@ -242,6 +253,9 @@ class CourseAgent extends BaseAgent
      */
     protected function formatCourseDetail($course)
     {
+        // 保存當前課程到 Session（用於後續查詢完整內容）
+        $this->session->setContext('last_course', $course);
+
         $typeName = $course['type'] === 'unemployed' ? '待業' : '在職';
         $featured = isset($course['featured']) && $course['featured'] ? '⭐ ' : '';
 
@@ -273,7 +287,7 @@ class CourseAgent extends BaseAgent
         $content .= "**📍 上課地點**\n";
         $content .= "{$course['location']['address']}\n\n";
 
-        // 課程內容
+        // 課程內容（預覽）
         if (isset($course['content'])) {
             $contentPreview = mb_substr($course['content'], 0, 150);
             if (mb_strlen($course['content']) > 150) {
@@ -284,11 +298,57 @@ class CourseAgent extends BaseAgent
 
         $content .= "🔗 詳細資訊：{$course['url']}";
 
-        $quickOptions = $course['related_questions'] ?? ['補助資格', '如何報名', '更多課程'];
+        // 動態快速按鈕
+        $quickOptions = [];
+
+        // 如果有完整內容，添加「查看完整內容」按鈕
+        if (isset($course['content']) && mb_strlen($course['content']) > 150) {
+            $quickOptions[] = '查看完整內容';
+        }
+
+        // 添加其他按鈕
+        $defaultOptions = $course['related_questions'] ?? ['補助資格', '如何報名'];
+        $quickOptions = array_merge($quickOptions, $defaultOptions);
 
         return [
             'content' => $content,
             'quick_options' => $quickOptions
+        ];
+    }
+
+    /**
+     * 處理課程完整內容查詢
+     */
+    protected function handleCourseContent()
+    {
+        $course = $this->session->getContext('last_course');
+
+        if (!$course) {
+            return [
+                'content' => "請先查看課程詳情，再查詢課程內容。\n\n您可以：",
+                'quick_options' => ['待業課程', '在職課程', '精選課程']
+            ];
+        }
+
+        $typeName = $course['type'] === 'unemployed' ? '待業' : '在職';
+        $featured = isset($course['featured']) && $course['featured'] ? '⭐ ' : '';
+
+        $content = "📖 **{$featured}{$course['course_name']} - 完整課程內容**\n\n";
+        $content .= "**課程類型**：{$typeName}課程\n\n";
+
+        // 完整課程內容
+        if (isset($course['content']) && !empty($course['content'])) {
+            $content .= "**📚 課程內容**\n\n";
+            $content .= $course['content'] . "\n\n";
+        } else {
+            $content .= "📚 課程內容資訊請參考官網：\n";
+        }
+
+        $content .= "🔗 詳細資訊：{$course['url']}";
+
+        return [
+            'content' => $content,
+            'quick_options' => ['補助資格', '如何報名', '更多課程']
         ];
     }
 
@@ -381,9 +441,20 @@ class CourseAgent extends BaseAgent
         // 更新 Session offset
         $this->session->setContext('display_offset', $offset);
 
+        // 動態生成快速按鈕
+        $quickOptions = [];
+
+        // 如果有第二頁，添加「更多」按鈕
+        if ($offset + $pageSize < $totalCourses) {
+            $quickOptions[] = '更多';
+        }
+
+        // 添加其他常用按鈕
+        $quickOptions = array_merge($quickOptions, ['補助資格', '聯絡客服']);
+
         return [
             'content' => $content,
-            'quick_options' => ['補助資格', '如何報名', '聯絡客服']
+            'quick_options' => $quickOptions
         ];
     }
 

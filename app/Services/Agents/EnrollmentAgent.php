@@ -101,9 +101,7 @@ class EnrollmentAgent extends BaseAgent
         $content .= "LINE：{$serviceInfo['contact']['line']['id']}\n";
         $content .= "地址：{$serviceInfo['contact']['address']['full']}";
 
-        $quickOptions = $courseType === 'unemployed'
-            ? ['甄试准备什么', '查看待業課程', '補助資格', '聯絡客服']
-            : ['查看在職課程', '補助資格', '聯絡客服'];
+        $quickOptions = ['補助資格', '查看課程', '聯絡客服'];
 
         return [
             'content' => $content,

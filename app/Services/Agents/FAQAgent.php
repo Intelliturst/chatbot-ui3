@@ -105,7 +105,7 @@ class FAQAgent extends BaseAgent
 
             $quickOptions = isset($faq['related_questions'])
                 ? array_slice($faq['related_questions'], 0, 4)
-                : ['其他問題', '查看課程', '補助資格', '聯絡客服'];
+                : ['課程列表', '補助資格', '聯絡客服'];
 
             return [
                 'content' => $content,
@@ -114,14 +114,14 @@ class FAQAgent extends BaseAgent
         }
 
         // 多个結果，列出让用戶选择
-        $content = "我找到以下相关問題：\n\n";
+        $content = "我找到以下相關問題：\n\n";
 
         foreach (array_slice($faqResults, 0, 4) as $index => $faq) {
             $num = $index + 1;
             $content .= "{$num}. {$faq['question']}\n";
         }
 
-        $content .= "\n💡 請选择您想了解的問題，或直接描述您的問題";
+        $content .= "\n💡 請選擇您想了解的問題，或直接描述您的問題";
 
         // 将FAQ結果缓存到session
         $this->session->setContext('faq_results', $faqResults);
@@ -145,16 +145,16 @@ class FAQAgent extends BaseAgent
 
         $context = [
             '聯絡資訊' => "電話：{$serviceInfo['contact']['phone']['display']}，LINE：{$serviceInfo['contact']['line']['id']}",
-            '上课地点' => $serviceInfo['contact']['address']['full'],
-            '营业時間' => $serviceInfo['service_hours']['weekdays']
+            '上課地點' => $serviceInfo['contact']['address']['full'],
+            '營業時間' => $serviceInfo['service_hours']['weekdays']
         ];
 
         $response = $this->generateResponse($userMessage, $context);
 
         if ($response) {
             return [
-                'content' => $response . "\n\n如需更多協助，欢迎聯絡客服：03-4227723",
-                'quick_options' => ['查看課程', '補助資格', '報名流程', '聯絡客服']
+                'content' => $response . "\n\n如需更多協助，歡迎聯絡客服：03-4227723",
+                'quick_options' => ['課程列表', '補助資格', '聯絡客服']
             ];
         }
 
@@ -165,10 +165,10 @@ class FAQAgent extends BaseAgent
         }, $allFAQs), 0, 4);
 
         return [
-            'content' => "很抱歉，我可能无法完全理解您的問題。\n\n以下是一些常見問題，或许能帮到您：\n\n" . implode("\n", array_map(function($q, $i) {
+            'content' => "很抱歉，我可能無法完全理解您的問題。\n\n以下是一些常見問題，或許能幫到您：\n\n" . implode("\n", array_map(function($q, $i) {
                 return ($i + 1) . ". {$q}";
             }, $commonQuestions, array_keys($commonQuestions))),
-            'quick_options' => ['聯絡客服', '查看課程', '補助資格']
+            'quick_options' => ['課程列表', '補助資格', '聯絡客服']
         ];
     }
 
@@ -179,17 +179,17 @@ class FAQAgent extends BaseAgent
     {
         return <<<EOT
 你是虹宇職訓的客服助理。你的職責是：
-1. 回答学员的一般問題
+1. 回答學員的一般問題
 2. 提供清晰、準確的資訊
-3. 必要时引导学员聯絡客服
+3. 必要時引導學員聯絡客服
 
 常見問題包括：
 - 如何報名課程
-- 上课地点与時間
-- 請假规定
-- 结业证书取得
+- 上課地點與時間
+- 請假規定
+- 結業證書取得
 
-請用繁体中文回答，保持友善、耐心的语气。如果不确定答案，建议学员聯絡客服。
+請用繁體中文回答，保持友善、耐心的語氣。如果不確定答案，建議學員聯絡客服。
 EOT;
     }
 }

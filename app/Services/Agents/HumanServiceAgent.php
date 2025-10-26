@@ -64,7 +64,7 @@ class HumanServiceAgent extends BaseAgent
 
         return [
             'content' => $content,
-            'quick_options' => ['回主選單', '查看課程', '補助資格']
+            'quick_options' => ['課程列表', '補助資格', '聯絡客服']
         ];
     }
 
