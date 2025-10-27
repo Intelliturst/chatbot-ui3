@@ -597,9 +597,6 @@ class CourseAgent extends BaseAgent
 
         $content .= "💡 點選課程編號查看詳情";
 
-        // 更新 Session offset
-        $this->session->setContext('display_offset', $offset);
-
         // 動態生成快速按鈕
         $quickOptions = [];
 
@@ -623,6 +620,17 @@ class CourseAgent extends BaseAgent
         if (count($quickOptions) < 8) {
             $quickOptions[] = '聯絡客服';
         }
+
+        // 【重要】最後才更新 Session offset，確保與顯示內容和快速按鈕一致
+        $this->session->setContext('display_offset', $offset);
+
+        // 添加詳細日誌，用於調試分頁問題
+        \Log::info('CourseAgent::renderCoursePage completed', [
+            'offset' => $offset,
+            'total_courses' => $totalCourses,
+            'courses_on_page' => $coursesOnPage,
+            'quick_options' => $quickOptions
+        ]);
 
         return [
             'content' => $content,

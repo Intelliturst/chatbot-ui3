@@ -20,7 +20,6 @@
     @if($isOpen)
     <div
         x-data="{
-            userInput: '',
             scrollToBottom() {
                 setTimeout(() => {
                     this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight;
@@ -35,14 +34,11 @@
                     .replace(/\n/g, '<br>');
                 return formatted;
             },
-            sendMessage() {
-                if (!this.userInput.trim()) return;
-
-                const message = this.userInput;
-                this.userInput = '';
-
-                // 直接調用後端，讓 Livewire 自動處理重新渲染
-                $wire.call('sendMessage', message);
+            handleEnter(event) {
+                if (!event.shiftKey) {
+                    event.preventDefault();
+                    @this.sendMessage();
+                }
             }
         }"
         x-init="scrollToBottom()"
@@ -182,7 +178,7 @@
         <div class="p-4 bg-white border-t-2 border-gray-100 rounded-b-none md:rounded-b-3xl flex-shrink-0 shadow-inner">
             <div class="flex items-end space-x-2">
                 <textarea
-                    x-model="userInput"
+                    wire:model.defer="userInput"
                     wire:loading.attr="disabled"
                     wire:target="sendMessage"
                     rows="1"
@@ -192,11 +188,11 @@
                            resize-none text-sm leading-relaxed
                            hover:border-gray-300 transition-colors
                            disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
-                    x-on:keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); sendMessage(); }"
+                    @keydown.enter="handleEnter($event)"
                 ></textarea>
 
                 <button
-                    x-on:click="sendMessage()"
+                    wire:click="sendMessage"
                     wire:loading.attr="disabled"
                     wire:target="sendMessage"
                     class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark text-white
@@ -214,6 +210,13 @@
             <p class="text-xs text-gray-400 mt-2 text-center">
                 按 Enter 發送 • Shift + Enter 換行
             </p>
+
+            {{-- Footer: 版權信息 --}}
+            <div class="mt-2 pt-2 border-t border-gray-200">
+                <p class="text-xs text-gray-400 text-center">
+                    Support by <span class="font-medium text-gray-500">智能悅信資訊</span>
+                </p>
+            </div>
         </div>
     </div>
     @endif

@@ -123,6 +123,9 @@ class SubsidyAgent extends BaseAgent
             $content .= "⚠️ **注意事项**：\n{$rules['rules'][0]['note']}";
         }
 
+        // 設置上下文，標記為補助資訊查詢
+        $this->session->setContext('last_action', 'subsidy_info');
+
         $quickOptions = ['查看課程', '如何報名', '聯絡客服'];
 
         return [
@@ -164,6 +167,9 @@ class SubsidyAgent extends BaseAgent
         }
 
         if (!$specialRule || !isset($specialRule['special_identities'])) {
+            // 設置上下文，標記為補助問題查詢
+            $this->session->setContext('last_action', 'subsidy_question');
+
             return [
                 'content' => "目前{$typeName}者可享基本補助。\n\n如需了解更多，請聯絡客服：03-4227723",
                 'quick_options' => ['查看課程', '報名流程', '聯絡客服']
@@ -218,6 +224,9 @@ class SubsidyAgent extends BaseAgent
             $content .= "\n⚠️ {$specialRule['note']}";
         }
 
+        // 設置上下文，標記為補助問題查詢
+        $this->session->setContext('last_action', 'subsidy_question');
+
         return [
             'content' => $content,
             'quick_options' => ['需要什麼證明文件', '查看課程', '報名流程', '聯絡客服']
@@ -268,6 +277,9 @@ class SubsidyAgent extends BaseAgent
         $content .= "• 所有證明文件請準備影本\n";
         $content .= "• 有效期限需包含開訓日當日\n";
         $content .= "• 實際所需文件以開課單位要求為準\n";
+
+        // 設置上下文，標記為補助問題查詢
+        $this->session->setContext('last_action', 'subsidy_question');
 
         return [
             'content' => $content,

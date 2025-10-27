@@ -125,12 +125,31 @@ class ClassificationAgent extends BaseAgent
             // 其他情況繼續讓 OpenAI 分類
         }
 
+        // 【優先 2.4】補助上下文 + 文件/身份相關問題（上下文感知）
+        $employmentStatus = $this->session->getContext('employment_status');
+        if ($employmentStatus || in_array($lastAction, ['subsidy_info', 'subsidy_question'])) {
+            // 檢查是否為補助相關問題（文件、特定身份、資格等）
+            if (preg_match('/(證明|文件|資料|要準備|需要什麼|要帶什麼|申請資料|檢附|原住民|身心障礙|中高齡|低收|獨力負擔|新住民|更生人|二度就業|長期失業|身份|特定對象)/ui', $trimmed)) {
+                // 有補助上下文且問題相關，直接路由到補助代理
+                \Log::info('ClassificationAgent: Routing to SubsidyAgent due to subsidy context', [
+                    'employment_status' => $employmentStatus,
+                    'last_action' => $lastAction,
+                    'message' => $trimmed
+                ]);
+                return $this->handleSubsidy($trimmed);
+            }
+        }
+
         // 【優先 2.5】課程上下文 + 課程相關問題（上下文感知）
         $lastCourse = $this->session->getContext('last_course');
         if ($lastCourse) {
-            // 檢查是否為課程相關問題
-            if (preg_match('/(需要|需不需要|要不要|需具備|基礎|先備|前置|條件|資格|適合|對象|招生|甄試|內容|教什麼|學什麼|地點|在哪|費用|多少錢|時間|時數|截止|開課|報名)/ui', $trimmed)) {
-                // 有課程上下文且問題相關，直接路由到課程代理
+            // 檢查是否為課程相關問題（但排除補助文件相關）
+            // 避免「需要帶什麼文件」這類補助問題被誤判為課程問題
+            $isCourseQuestion = preg_match('/(需要|需不需要|要不要|需具備|基礎|先備|前置|條件|資格|適合|對象|招生|甄試|內容|教什麼|學什麼|地點|在哪|費用|多少錢|時間|時數|截止|開課|報名)/ui', $trimmed);
+            $isSubsidyDocument = preg_match('/(證明|文件|資料|要準備|要帶什麼|申請資料|檢附)/ui', $trimmed);
+
+            if ($isCourseQuestion && !$isSubsidyDocument) {
+                // 有課程上下文且問題相關（非補助文件），直接路由到課程代理
                 return $this->handleCourse($trimmed);
             }
         }
