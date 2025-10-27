@@ -24,6 +24,7 @@ class ClassificationAgent extends BaseAgent
         '更多' => ['agent' => 'course', 'action' => 'pagination'],
         '查看完整內容' => ['agent' => 'course', 'action' => 'course_content'],
         '課程內容' => ['agent' => 'course', 'action' => 'course_content'],  // 向後兼容
+        '課程內容詳情' => ['agent' => 'course', 'action' => 'course_content'],
         '更多課程' => ['agent' => 'course', 'type' => 'featured'],
         '查看其他課程' => ['action' => 'showCourseMenu'],
         '查看所有課程' => ['action' => 'showCourseMenu'],
@@ -32,6 +33,16 @@ class ClassificationAgent extends BaseAgent
         '設計課程' => ['agent' => 'course', 'keyword' => '設計'],
         '管理課程' => ['agent' => 'course', 'keyword' => '管理'],
         '精選課程' => ['agent' => 'course', 'type' => 'featured'],
+
+        // Course Search Keywords (簡短關鍵字 for promptCourseSearch)
+        'AI' => ['agent' => 'course', 'keyword' => 'AI'],
+        '行銷' => ['agent' => 'course', 'keyword' => '行銷'],
+        '設計' => ['agent' => 'course', 'keyword' => '設計'],
+        '程式設計' => ['agent' => 'course', 'keyword' => '程式設計'],
+        '數位行銷' => ['agent' => 'course', 'keyword' => '數位行銷'],
+        'Python' => ['agent' => 'course', 'keyword' => 'Python'],
+        'Java' => ['agent' => 'course', 'keyword' => 'Java'],
+        '管理' => ['agent' => 'course', 'keyword' => '管理'],
 
         // Subsidy Menu
         '我是在職者' => ['agent' => 'subsidy', 'status' => 'employed'],
@@ -112,6 +123,16 @@ class ClassificationAgent extends BaseAgent
                 return $this->handleCourse($trimmed);
             }
             // 其他情況繼續讓 OpenAI 分類
+        }
+
+        // 【優先 2.5】課程上下文 + 課程相關問題（上下文感知）
+        $lastCourse = $this->session->getContext('last_course');
+        if ($lastCourse) {
+            // 檢查是否為課程相關問題
+            if (preg_match('/(需要|需不需要|要不要|需具備|基礎|先備|前置|條件|資格|適合|對象|招生|甄試|內容|教什麼|學什麼|地點|在哪|費用|多少錢|時間|時數|截止|開課|報名)/ui', $trimmed)) {
+                // 有課程上下文且問題相關，直接路由到課程代理
+                return $this->handleCourse($trimmed);
+            }
         }
 
         // 【其他情況】使用 OpenAI 分類
@@ -424,6 +445,24 @@ EOT;
     {
         $courseAgent = app(\App\Services\Agents\CourseAgent::class);
 
+        // 如果有 action，直接調用對應方法
+        if (isset($route['action'])) {
+            switch ($route['action']) {
+                case 'course_content':
+                    // 查看完整課程內容
+                    return $courseAgent->handleCourseContent();
+
+                case 'pagination':
+                    // 分頁（更多課程）
+                    return $courseAgent->handlePagination();
+            }
+        }
+
+        // 如果有 keyword，使用 keyword 搜尋課程
+        if (isset($route['keyword'])) {
+            return $courseAgent->handle($route['keyword']);
+        }
+
         // 根據 type 設定 session 上下文或修改訊息
         if (isset($route['type'])) {
             switch ($route['type']) {
@@ -614,8 +653,8 @@ EOT;
         $this->session->setContext('last_action', 'prompt_search');
 
         return [
-            'content' => "🔍 **課程搜尋**\n\n請輸入您想搜尋的關鍵字，例如：\n• AI\n• 行銷\n• 設計\n• 程式設計\n• 數位行銷\n\n我會為您找出相關的課程。",
-            'quick_options' => ['待業課程', '在職課程', '熱門課程', '回到主選單']
+            'content' => "🔍 **課程搜尋**\n\n請輸入您想搜尋的關鍵字，或點選下方熱門類別：",
+            'quick_options' => ['AI', '行銷', '設計', 'Python']
         ];
     }
 }

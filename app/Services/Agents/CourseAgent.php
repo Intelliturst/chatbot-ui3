@@ -58,7 +58,7 @@ class CourseAgent extends BaseAgent
     protected function detectQueryType($message)
     {
         // 優先檢測課程相關問題（當有 last_course 上下文時）
-        if (preg_match('/(報名截止|截止時間|開課日期|什麼時候開課|上課地點|在哪上課|地點在哪|課程費用|學費|費用多少|多少錢|時數|總時數|上課時間|幾點上課)/ui', $message)) {
+        if (preg_match('/(報名截止|截止時間|開課日期|什麼時候開課|上課地點|在哪上課|地點在哪|課程費用|學費|費用多少|多少錢|時數|總時數|上課時間|幾點上課|需要|需不需要|要不要|需具備|基礎|先備|前置|條件|資格|適合|對象|招生|名額|人數|甄試|面試)/ui', $message)) {
             $lastCourse = $this->session->getContext('last_course');
             if ($lastCourse) {
                 return 'course_question';
@@ -118,8 +118,12 @@ class CourseAgent extends BaseAgent
             return 'search';
         }
         // 或者：明確包含課程領域關鍵字（AI、行銷、設計等）
-        if (preg_match('/(AI|人工智慧|行銷|設計|程式|Python|Java|管理|UI|UX|數位|影片|剪輯|Excel|平面|網頁|前端|後端|資料|大數據).*(課程)/ui', $message)) {
-            return 'search';
+        // 支援「行銷課程」或單純「行銷」的搜尋
+        if (preg_match('/(AI|人工智慧|行銷|設計|程式設計|程式|Python|Java|管理|UI|UX|數位行銷|數位|影片|剪輯|Excel|平面|網頁|前端|後端|資料|大數據)/ui', $message)) {
+            // 排除一般性查詢詞（如「有哪些」、「查看」、「列表」等）
+            if (!preg_match('/(有哪些|查看|顯示|列表|清單|所有)/ui', $message)) {
+                return 'search';
+            }
         }
 
         // 【預設】一般諮詢（引導用戶）
@@ -341,9 +345,9 @@ class CourseAgent extends BaseAgent
             $quickOptions[] = '查看完整內容';
         }
 
-        // 添加其他按鈕
-        $defaultOptions = $course['related_questions'] ?? ['補助資格', '如何報名'];
-        $quickOptions = array_merge($quickOptions, $defaultOptions);
+        // 使用標準快速按鈕（保證系統都能理解）
+        $standardOptions = $this->getStandardCourseQuickOptions();
+        $quickOptions = array_merge($quickOptions, $standardOptions);
 
         return [
             'content' => $content,
@@ -415,6 +419,51 @@ class CourseAgent extends BaseAgent
                 $content .= "• 開課日期：{$course['schedule']['start_date']}";
             }
 
+        } elseif (preg_match('/(需要|需不需要|要不要|需具備|基礎|先備|前置|條件|資格)/ui', $message)) {
+            $content = "📋 **{$featured}{$courseName}**\n\n";
+            $content .= "**報名條件**\n";
+            if (isset($course['enrollment']['requirements'])) {
+                $content .= "• {$course['enrollment']['requirements']}\n\n";
+            } else {
+                $content .= "• 本課程無特殊條件限制\n\n";
+            }
+            $content .= "💡 **建議**：如有疑問建議聯絡客服確認您是否符合報名資格。";
+
+        } elseif (preg_match('/(適合|對象|誰可以)/ui', $message)) {
+            $content = "👥 **{$featured}{$courseName}**\n\n";
+            $content .= "**適合對象**\n";
+            if (isset($course['enrollment']['requirements'])) {
+                $content .= "• {$course['enrollment']['requirements']}\n\n";
+            } else {
+                $content .= "• 本課程適合對該領域有興趣的學員\n\n";
+            }
+            if ($typeName === '待業') {
+                $content .= "💡 **補充**：待業課程適合15歲以上失業者，需具工作意願。";
+            } else {
+                $content .= "💡 **補充**：在職課程適合在職勞工，需投保勞保/就保。";
+            }
+
+        } elseif (preg_match('/(招生|名額|人數|幾個人|多少人)/ui', $message)) {
+            $content = "👨‍🎓 **{$featured}{$courseName}**\n\n";
+            $content .= "**招生資訊**\n";
+            if (isset($course['enrollment']['capacity'])) {
+                $content .= "• 招生人數：{$course['enrollment']['capacity']}人\n\n";
+            } else {
+                $content .= "• 請洽詢客服確認招生人數\n\n";
+            }
+            $content .= "💡 **提醒**：名額有限，建議盡早報名以免向隅。";
+
+        } elseif (preg_match('/(甄試|面試|測驗)/ui', $message)) {
+            $content = "📝 **{$featured}{$courseName}**\n\n";
+            $content .= "**甄試資訊**\n";
+            if (isset($course['schedule']['interview_date'])) {
+                $content .= "• 甄試時間：{$course['schedule']['interview_date']}\n\n";
+                $content .= "💡 **提醒**：請準時出席甄試，未出席者視同放棄。";
+            } else {
+                $content .= "• 本課程報名後將另行通知甄試時間\n\n";
+                $content .= "💡 **提醒**：請留意簡訊或email通知。";
+            }
+
         } else {
             // 預設返回課程詳情
             return $this->formatCourseDetail($course);
@@ -422,14 +471,14 @@ class CourseAgent extends BaseAgent
 
         return [
             'content' => $content,
-            'quick_options' => ['補助資格', '如何報名', '查看完整內容']
+            'quick_options' => $this->getStandardCourseQuickOptions()
         ];
     }
 
     /**
      * 處理課程完整內容查詢
      */
-    protected function handleCourseContent()
+    public function handleCourseContent()
     {
         $course = $this->session->getContext('last_course');
 
@@ -543,10 +592,10 @@ class CourseAgent extends BaseAgent
         // 提示文字
         if ($offset + $pageSize < $totalCourses) {
             $remaining = $totalCourses - ($offset + $pageSize);
-            $content .= "...還有 {$remaining} 門課程（輸入「更多」繼續查看）\n\n";
+            $content .= "...還有 {$remaining} 門課程（點選「更多」繼續查看）\n\n";
         }
 
-        $content .= "💡 請輸入課程編號查看詳情";
+        $content .= "💡 點選課程編號查看詳情";
 
         // 更新 Session offset
         $this->session->setContext('display_offset', $offset);
@@ -554,13 +603,26 @@ class CourseAgent extends BaseAgent
         // 動態生成快速按鈕
         $quickOptions = [];
 
+        // 添加當前頁面課程編號按鈕（1-5 或更少）
+        $coursesOnPage = count($coursesToShow);
+        for ($i = 0; $i < $coursesOnPage; $i++) {
+            $courseNum = $offset + $i + 1;
+            $quickOptions[] = (string)$courseNum;
+        }
+
         // 如果有第二頁，添加「更多」按鈕
         if ($offset + $pageSize < $totalCourses) {
             $quickOptions[] = '更多';
         }
 
-        // 添加其他常用按鈕
-        $quickOptions = array_merge($quickOptions, ['補助資格', '聯絡客服']);
+        // 如果快速按鈕數量還有空間，添加其他常用按鈕
+        // 一般前端限制在 8 個按鈕以內
+        if (count($quickOptions) < 7) {
+            $quickOptions[] = '補助資格';
+        }
+        if (count($quickOptions) < 8) {
+            $quickOptions[] = '聯絡客服';
+        }
 
         return [
             'content' => $content,
@@ -572,7 +634,7 @@ class CourseAgent extends BaseAgent
     /**
      * 處理分頁請求（更多、剩下的課程）
      */
-    protected function handlePagination()
+    public function handlePagination()
     {
         $courseList = $this->session->getContext('current_course_list');
         $currentOffset = $this->session->getContext('display_offset', 0);
@@ -641,5 +703,17 @@ class CourseAgent extends BaseAgent
 
 請用繁體中文回答，保持專業友善的語氣。
 EOT;
+    }
+
+    /**
+     * 取得標準課程快速按鈕（保證系統能理解）
+     *
+     * @return array
+     */
+    protected function getStandardCourseQuickOptions()
+    {
+        // 使用標準快速按鈕（來自 button_config.json）
+        // 這些按鈕保證系統都能理解和處理
+        return ['報名截止時間', '上課地點', '課程費用', '補助資訊', '如何報名'];
     }
 }
