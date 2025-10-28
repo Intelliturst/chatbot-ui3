@@ -99,7 +99,9 @@ class ClassificationAgent extends BaseAgent
         'course' => [
             '課', '學', '教', '訓練', '培訓', '上課', '開課',
             '課程', '班級', '學習', '報名', '講座', '進修', '職訓',
-            'AI', 'Python', 'Java', '行銷', '設計', '管理', '程式'
+            'AI', 'Python', 'Java', '行銷', '設計', '管理', '程式',
+            '有哪些', '哪些', '列表', '查詢', '查看', '搜尋', '搜索',
+            '有什麼', '什麼課', '介紹', '推薦', '想學'
         ],
         'subsidy' => [
             '補助', '錢', '費用', '價格', '多少', '免費',
@@ -200,6 +202,14 @@ class ClassificationAgent extends BaseAgent
                 // 有課程上下文且問題相關（非補助文件），直接路由到課程代理
                 return $this->handleCourse($trimmed);
             }
+        }
+
+        // 【優先級 2.6】特定模式檢測 - 課程查詢模式
+        if ($this->detectCourseQueryPattern($trimmed)) {
+            \Log::info('ClassificationAgent: Detected course query pattern', [
+                'message' => $trimmed
+            ]);
+            return $this->handleCourse($trimmed);
         }
 
         // 【其他情況】使用 OpenAI 分類
@@ -915,5 +925,47 @@ EOT;
             ]);
         }
         */
+    }
+
+    /**
+     * 檢測課程查詢模式
+     *
+     * 識別常見的課程查詢模式，例如：
+     * - "XX課程有哪些"
+     * - "有什麼XX課程"
+     * - "XX課程"
+     * - "我想學XX"
+     *
+     * @param string $message 用戶訊息
+     * @return bool 是否匹配課程查詢模式
+     */
+    protected function detectCourseQueryPattern($message)
+    {
+        // 模式1：XX課程有哪些 / XX課程列表 / XX課程查詢
+        if (preg_match('/(AI|Python|Java|行銷|設計|管理|程式|數位|電腦|網頁|資料|機器學習).*(課程|課|訓練).*(有哪些|哪些|列表|查詢|查看|搜尋)/ui', $message)) {
+            return true;
+        }
+
+        // 模式2：有什麼XX課程 / 有哪些XX課程
+        if (preg_match('/(有什麼|有哪些|想找|想學|尋找).*(AI|Python|Java|行銷|設計|管理|程式|數位|電腦|網頁|資料|機器學習).*(課程|課|訓練)/ui', $message)) {
+            return true;
+        }
+
+        // 模式3：XX課程（精確匹配）
+        if (preg_match('/^(AI|Python|Java|行銷|設計|管理|程式設計|數位行銷|電腦|網頁|資料)(課程|課)$/ui', $message)) {
+            return true;
+        }
+
+        // 模式4：我想學XX
+        if (preg_match('/(我想學|想學習|學習|報名).*(AI|Python|Java|行銷|設計|管理|程式|數位|電腦|網頁|資料)/ui', $message)) {
+            return true;
+        }
+
+        // 模式5：課程 + 查詢動詞（如：AI課程有哪些）
+        if (preg_match('/(課程|課|訓練).*(有哪些|哪些|列表|查詢|查看|搜尋|介紹|推薦)/ui', $message)) {
+            return true;
+        }
+
+        return false;
     }
 }
