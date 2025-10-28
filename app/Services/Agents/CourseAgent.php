@@ -564,12 +564,20 @@ class CourseAgent extends BaseAgent
         $content .= "：\n\n";
 
         // 使用絕對編號（從 offset + 1 開始計數）
-        $courseNum = $offset + 1;  // 起始編號
+        // 使用 displayNum 變量名避免與快速按鈕的 courseNum 混淆
+        $displayNum = $offset + 1;  // 起始編號
+
+        \Log::info('CourseAgent::renderCoursePage - 開始渲染內容', [
+            'offset' => $offset,
+            'starting_displayNum' => $displayNum,
+            'courses_count' => count($coursesToShow)
+        ]);
+
         foreach ($coursesToShow as $course) {
             $featured = isset($course['featured']) && $course['featured'] ? '⭐ ' : '';
             $typeName = $course['type'] === 'unemployed' ? '待業' : '在職';
 
-            $content .= "{$courseNum}. {$featured}{$course['course_name']}";
+            $content .= "{$displayNum}. {$featured}{$course['course_name']}";
             if ($showFeatured) {
                 $content .= " ({$typeName})";
             }
@@ -585,8 +593,13 @@ class CourseAgent extends BaseAgent
             }
 
             $content .= "\n";
-            $courseNum++;  // 遞增編號
+            $displayNum++;  // 遞增編號
         }
+
+        \Log::info('CourseAgent::renderCoursePage - 內容渲染完成', [
+            'final_displayNum' => $displayNum - 1,
+            'courses_rendered' => count($coursesToShow)
+        ]);
 
         // 提示文字
         if ($offset + $pageSize < $totalCourses) {
@@ -600,10 +613,25 @@ class CourseAgent extends BaseAgent
         $quickOptions = [];
 
         // 添加當前頁面課程編號按鈕（1-5 或更少）
+        // 使用 buttonNum 變量名確保與內容編號完全獨立
         $coursesOnPage = count($coursesToShow);
+
+        \Log::info('CourseAgent::renderCoursePage - 生成快速按鈕', [
+            'offset' => $offset,
+            'coursesOnPage' => $coursesOnPage
+        ]);
+
         for ($i = 0; $i < $coursesOnPage; $i++) {
-            $courseNum = $offset + $i + 1;
-            $quickOptions[] = (string)$courseNum;
+            $buttonNum = $offset + $i + 1;
+            $quickOptions[] = (string)$buttonNum;
+
+            // 記錄每個按鈕
+            if ($i === 0 || $i === $coursesOnPage - 1) {
+                \Log::info('CourseAgent::renderCoursePage - 按鈕編號', [
+                    'index' => $i,
+                    'buttonNum' => $buttonNum
+                ]);
+            }
         }
 
         // 如果有第二頁，添加「更多」按鈕
