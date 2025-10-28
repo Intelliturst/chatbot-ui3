@@ -91,12 +91,58 @@ class ClassificationAgent extends BaseAgent
     ];
 
     /**
+     * 模糊匹配關鍵字庫 - 用於當 OpenAI 無法分類時的備用方案
+     */
+    protected $fuzzyKeywords = [
+        'course' => [
+            '課', '學', '教', '訓練', '培訓', '上課', '開課',
+            '課程', '班級', '學習', '報名', '講座', '進修', '職訓',
+            'AI', 'Python', 'Java', '行銷', '設計', '管理', '程式'
+        ],
+        'subsidy' => [
+            '補助', '錢', '費用', '價格', '多少', '免費',
+            '政府', '勞動部', '資格', '身份', '文件', '證明',
+            '全額', '80%', '100%', '補貼', '津貼'
+        ],
+        'faq' => [
+            '問', '如何', '怎麼', '什麼', '為什麼', '可以嗎',
+            '有沒有', '是不是', '在哪', '哪裡', '幾點', '何時'
+        ],
+        'enrollment' => [
+            '報名', '申請', '登記', '註冊', '繳費', '資格審查',
+            '名額', '額滿', '候補', '錄取', '甄試', '面試'
+        ],
+        'contact' => [
+            '聯絡', '電話', '地址', '客服', '諮詢', '詢問',
+            '聯繫', '找人', '服務', '打給', '撥打'
+        ]
+    ];
+
+    /**
+     * 關鍵字排除規則 - 避免上下文誤判
+     */
+    protected $contextExclusions = [
+        'course' => ['證明', '文件', '資料', '要準備', '要帶', '申請資料', '檢附', '補助'],
+        'subsidy' => ['課程內容', '教什麼', '學什麼', '課綱', '大綱', '講師'],
+        'faq' => [],  // FAQ 優先級較低，不需要排除
+    ];
+
+    /**
      * 處理用戶訊息
      */
     public function handle($userMessage)
     {
         $lastAction = $this->session->getContext('last_action');
-        $trimmed = trim($userMessage);
+        $originalMessage = $userMessage;
+
+        // 【預處理】標準化用戶輸入
+        $trimmed = $this->preprocessUserInput($userMessage);
+
+        \Log::info('ClassificationAgent::handle', [
+            'original' => $originalMessage,
+            'preprocessed' => $trimmed,
+            'last_action' => $lastAction
+        ]);
 
         // 【優先 0】快速按鈕檢查（最高優先級）
         if ($route = $this->matchQuickButton($trimmed)) {
@@ -181,10 +227,26 @@ class ClassificationAgent extends BaseAgent
                 return $this->handleHumanService($userMessage);
 
             case 9: // 未知/其他
-                return $this->handleUnknownFromJSON($userMessage);
-
             default:
-                return $this->errorResponse();
+                // 【優先級 4】嘗試關鍵字模糊匹配
+                $fuzzyMatch = $this->fuzzyKeywordMatch($trimmed);
+
+                if ($fuzzyMatch) {
+                    \Log::info('ClassificationAgent: Using fuzzy match', [
+                        'message' => $trimmed,
+                        'match' => $fuzzyMatch
+                    ]);
+                    return $this->routeByFuzzyMatch($fuzzyMatch, $trimmed);
+                }
+
+                // 【優先級 5】無法理解，提供用戶引導
+                $this->logUnknownQuery($trimmed, [
+                    'last_action' => $lastAction,
+                    'last_course' => $this->session->getContext('last_course'),
+                    'employment_status' => $this->session->getContext('employment_status')
+                ]);
+
+                return $this->promptUserGuidance($trimmed);
         }
     }
 
@@ -386,6 +448,38 @@ EOT;
 
 請用繁體中文回答，保持簡潔友善的語氣。
 EOT;
+    }
+
+    /**
+     * 預處理用戶輸入 - 標準化和清理
+     *
+     * @param string $message 原始用戶訊息
+     * @return string 處理後的訊息
+     */
+    protected function preprocessUserInput($message)
+    {
+        // 移除多餘空白
+        $message = preg_replace('/\s+/u', ' ', trim($message));
+
+        // 標準化問句符號
+        $message = str_replace(['嗎？', '嗎?', '？', '?'], '嗎', $message);
+
+        // 標準化常見表達
+        $replacements = [
+            '有沒有' => '有',
+            '請問' => '',
+            '我想要' => '我要',
+            '可不可以' => '可以',
+            '能不能' => '能',
+            '要不要' => '要',
+        ];
+
+        $message = str_replace(array_keys($replacements), array_values($replacements), $message);
+
+        // 移除禮貌用語（但保留在句尾的感謝）
+        $message = preg_replace('/^(您好|你好|不好意思|麻煩|麻煩你|麻煩您)[，、\s]*/ui', '', $message);
+
+        return trim($message);
     }
 
     /**
@@ -675,5 +769,149 @@ EOT;
             'content' => "🔍 **課程搜尋**\n\n請輸入您想搜尋的關鍵字，或點選下方熱門類別：",
             'quick_options' => ['AI', '行銷', '設計', 'Python']
         ];
+    }
+
+    /**
+     * 模糊匹配關鍵字 - 當 OpenAI 無法分類時的備用方案
+     *
+     * @param string $message 用戶訊息
+     * @return string|null 匹配的類別 (course, subsidy, faq, enrollment, contact)
+     */
+    protected function fuzzyKeywordMatch($message)
+    {
+        $scores = [];
+
+        // 計算每個類別的匹配分數
+        foreach ($this->fuzzyKeywords as $category => $keywords) {
+            $score = 0;
+            foreach ($keywords as $keyword) {
+                // 精確匹配得 2 分
+                if (mb_stripos($message, $keyword) !== false) {
+                    $score += 2;
+                }
+            }
+
+            // 檢查排除關鍵字
+            if (isset($this->contextExclusions[$category])) {
+                foreach ($this->contextExclusions[$category] as $exclusion) {
+                    if (mb_stripos($message, $exclusion) !== false) {
+                        $score -= 3;  // 遇到排除關鍵字扣分
+                    }
+                }
+            }
+
+            if ($score > 0) {
+                $scores[$category] = $score;
+            }
+        }
+
+        if (empty($scores)) {
+            return null;
+        }
+
+        // 返回得分最高的類別
+        arsort($scores);
+        $topCategory = array_key_first($scores);
+        $topScore = $scores[$topCategory];
+
+        // 需要至少 2 分才返回匹配
+        return $topScore >= 2 ? $topCategory : null;
+    }
+
+    /**
+     * 根據模糊匹配結果路由
+     *
+     * @param string $category 匹配的類別
+     * @param string $message 用戶訊息
+     * @return array 代理回應
+     */
+    protected function routeByFuzzyMatch($category, $message)
+    {
+        switch ($category) {
+            case 'course':
+                return $this->handleCourse($message);
+
+            case 'subsidy':
+                return $this->handleSubsidy($message);
+
+            case 'faq':
+                return $this->handleFAQ($message);
+
+            case 'enrollment':
+                return $this->handleEnrollment($message);
+
+            case 'contact':
+                return $this->handleHumanService($message);
+
+            default:
+                return $this->promptUserGuidance($message);
+        }
+    }
+
+    /**
+     * 提供用戶引導 - 當無法理解用戶問題時
+     *
+     * @param string $userMessage 用戶原始訊息
+     * @return array 引導回應
+     */
+    protected function promptUserGuidance($userMessage)
+    {
+        // 截斷過長的訊息以避免顯示問題
+        $displayMessage = mb_strlen($userMessage) > 30
+            ? mb_substr($userMessage, 0, 30) . '...'
+            : $userMessage;
+
+        return [
+            'content' => "抱歉，我不太理解您的問題「{$displayMessage}」😅\n\n" .
+                         "💡 **為了更好地幫助您，請：**\n" .
+                         "1️⃣ 用 **15 字以內** 簡單描述您的需求\n" .
+                         "2️⃣ 或點選下方按鈕，我會引導您找到答案\n\n" .
+                         "📌 **常見問題範例**：\n" .
+                         "• 「AI 課程有哪些」\n" .
+                         "• 「待業者補助多少」\n" .
+                         "• 「如何報名」\n" .
+                         "• 「上課地點在哪」",
+            'quick_options' => [
+                '查看課程清單',
+                '補助資格確認',
+                '報名流程說明',
+                '常見問題',
+                '聯絡客服'
+            ]
+        ];
+    }
+
+    /**
+     * 記錄無法理解的用戶查詢 - 用於後續分析和優化
+     *
+     * @param string $message 用戶訊息
+     * @param array $context 上下文資訊
+     * @return void
+     */
+    protected function logUnknownQuery($message, $context = [])
+    {
+        \Log::warning('Unknown user query', [
+            'message' => $message,
+            'context' => $context,
+            'session_id' => $this->session->getSessionId(),
+            'timestamp' => now()->toDateTimeString()
+        ]);
+
+        // 可選：保存到資料庫用於後續分析
+        // 如果需要啟用，請先創建 unknown_queries 資料表
+        /*
+        try {
+            \DB::table('unknown_queries')->insert([
+                'message' => $message,
+                'context' => json_encode($context),
+                'session_id' => $this->session->getSessionId(),
+                'created_at' => now()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to log unknown query to database', [
+                'error' => $e->getMessage()
+            ]);
+        }
+        */
     }
 }
