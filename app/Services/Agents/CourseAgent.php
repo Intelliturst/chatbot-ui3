@@ -577,6 +577,12 @@ class CourseAgent extends BaseAgent
             $featured = isset($course['featured']) && $course['featured'] ? '⭐ ' : '';
             $typeName = $course['type'] === 'unemployed' ? '待業' : '在職';
 
+            // 記錄當前正在處理的課程編號
+            \Log::info('CourseAgent::renderCoursePage - 正在渲染課程', [
+                'displayNum' => $displayNum,
+                'course_name' => $course['course_name']
+            ]);
+
             $content .= "{$displayNum}. {$featured}{$course['course_name']}";
             if ($showFeatured) {
                 $content .= " ({$typeName})";
@@ -598,7 +604,8 @@ class CourseAgent extends BaseAgent
 
         \Log::info('CourseAgent::renderCoursePage - 內容渲染完成', [
             'final_displayNum' => $displayNum - 1,
-            'courses_rendered' => count($coursesToShow)
+            'courses_rendered' => count($coursesToShow),
+            'content_preview' => mb_substr($content, 0, 300)  // 記錄前300字元
         ]);
 
         // 提示文字

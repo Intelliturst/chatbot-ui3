@@ -30,7 +30,8 @@
                 let formatted = content
                     .replace(/\*\*(.*?)\*\*/g, '<strong class=\'font-semibold\'>$1</strong>')
                     .replace(/^• (.*?)$/gm, '<li class=\'ml-4\'>$1</li>')
-                    .replace(/^(\d+)\. (.*?)$/gm, '<li class=\'ml-4 list-decimal\'>$2</li>')
+                    // 保留原始數字，不使用自動編號
+                    .replace(/^(\d+)\. (.*?)$/gm, '<div class=\'ml-0\'><strong>$1.</strong> $2</div>')
                     .replace(/\n/g, '<br>');
                 return formatted;
             },
