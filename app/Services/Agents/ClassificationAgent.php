@@ -2,6 +2,8 @@
 
 namespace App\Services\Agents;
 
+use Illuminate\Support\Facades\Session;
+
 class ClassificationAgent extends BaseAgent
 {
     /**
@@ -893,7 +895,7 @@ EOT;
         \Log::warning('Unknown user query', [
             'message' => $message,
             'context' => $context,
-            'session_id' => $this->session->getSessionId(),
+            'session_id' => Session::getId(),
             'timestamp' => now()->toDateTimeString()
         ]);
 
@@ -904,7 +906,7 @@ EOT;
             \DB::table('unknown_queries')->insert([
                 'message' => $message,
                 'context' => json_encode($context),
-                'session_id' => $this->session->getSessionId(),
+                'session_id' => Session::getId(),
                 'created_at' => now()
             ]);
         } catch (\Exception $e) {
