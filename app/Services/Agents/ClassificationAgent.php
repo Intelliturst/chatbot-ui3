@@ -3,6 +3,7 @@
 namespace App\Services\Agents;
 
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class ClassificationAgent extends BaseAgent
 {
@@ -101,7 +102,12 @@ class ClassificationAgent extends BaseAgent
             '課程', '班級', '學習', '報名', '講座', '進修', '職訓',
             'AI', 'Python', 'Java', '行銷', '設計', '管理', '程式',
             '有哪些', '哪些', '列表', '查詢', '查看', '搜尋', '搜索',
-            '有什麼', '什麼課', '介紹', '推薦', '想學'
+            '有什麼', '什麼課', '介紹', '推薦', '想學',
+            // 虹宇實際課程關鍵字
+            '多媒體', '電商', '職場文書', '商業', '影音', '剪輯',
+            '商務', 'office', 'Office', '手機', '創作', 'PMP',
+            '專案管理', '數位', 'ESG', '永續', '室內', 'ChatGPT',
+            '數據分析', '自動化'
         ],
         'subsidy' => [
             '補助', '錢', '費用', '價格', '多少', '免費',
@@ -941,23 +947,28 @@ EOT;
      */
     protected function detectCourseQueryPattern($message)
     {
+        // 虹宇實際課程關鍵字（完整清單）
+        $courseKeywords = 'AI|Python|Java|行銷|設計|管理|程式|數位|電腦|網頁|資料|機器學習|' .
+                         '多媒體|電商|職場文書|商業|影音|剪輯|商務|office|Office|手機|創作|' .
+                         'PMP|專案管理|ESG|永續|室內|ChatGPT|數據分析|自動化';
+
         // 模式1：XX課程有哪些 / XX課程列表 / XX課程查詢
-        if (preg_match('/(AI|Python|Java|行銷|設計|管理|程式|數位|電腦|網頁|資料|機器學習).*(課程|課|訓練).*(有哪些|哪些|列表|查詢|查看|搜尋)/ui', $message)) {
+        if (preg_match('/(' . $courseKeywords . ').*(課程|課|訓練).*(有哪些|哪些|列表|查詢|查看|搜尋)/ui', $message)) {
             return true;
         }
 
         // 模式2：有什麼XX課程 / 有哪些XX課程
-        if (preg_match('/(有什麼|有哪些|想找|想學|尋找).*(AI|Python|Java|行銷|設計|管理|程式|數位|電腦|網頁|資料|機器學習).*(課程|課|訓練)/ui', $message)) {
+        if (preg_match('/(有什麼|有哪些|想找|想學|尋找).*(' . $courseKeywords . ').*(課程|課|訓練)/ui', $message)) {
             return true;
         }
 
-        // 模式3：XX課程（精確匹配）
-        if (preg_match('/^(AI|Python|Java|行銷|設計|管理|程式設計|數位行銷|電腦|網頁|資料)(課程|課)$/ui', $message)) {
+        // 模式3：XX課程（精確匹配，包含常見組合）
+        if (preg_match('/^(' . $courseKeywords . '|程式設計|數位行銷|AI商業設計|職場文書|影音剪輯|商務office|手機剪輯創作|專案管理|永續發展|室內設計規劃|自動化數據分析)(課程|課)$/ui', $message)) {
             return true;
         }
 
         // 模式4：我想學XX
-        if (preg_match('/(我想學|想學習|學習|報名).*(AI|Python|Java|行銷|設計|管理|程式|數位|電腦|網頁|資料)/ui', $message)) {
+        if (preg_match('/(我想學|想學習|學習|報名).*(' . $courseKeywords . ')/ui', $message)) {
             return true;
         }
 
