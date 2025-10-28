@@ -563,18 +563,13 @@ class CourseAgent extends BaseAgent
         }
         $content .= "：\n\n";
 
-        // 使用相對編號（從 offset + 1 開始）
-        // 使用 array_values() 確保索引從 0 開始
-        $coursesToShow = array_values($coursesToShow);
-
-        foreach ($coursesToShow as $index => $course) {
-            // 相對編號 = offset + index + 1
-            $relativeNum = $offset + $index + 1;
-
+        // 使用絕對編號（從 offset + 1 開始計數）
+        $courseNum = $offset + 1;  // 起始編號
+        foreach ($coursesToShow as $course) {
             $featured = isset($course['featured']) && $course['featured'] ? '⭐ ' : '';
             $typeName = $course['type'] === 'unemployed' ? '待業' : '在職';
 
-            $content .= "{$relativeNum}. {$featured}{$course['course_name']}";
+            $content .= "{$courseNum}. {$featured}{$course['course_name']}";
             if ($showFeatured) {
                 $content .= " ({$typeName})";
             }
@@ -590,6 +585,7 @@ class CourseAgent extends BaseAgent
             }
 
             $content .= "\n";
+            $courseNum++;  // 遞增編號
         }
 
         // 提示文字
