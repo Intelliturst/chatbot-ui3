@@ -153,6 +153,7 @@ class ChatbotWidget extends Component
     {
         $this->getSessionManager()->clearSession();
         $this->messages = [];
+        $this->userInput = '';  // 清空輸入欄
         $this->addWelcomeMessage();
         $this->updateSessionInfo();
 

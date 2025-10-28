@@ -564,6 +564,9 @@ class CourseAgent extends BaseAgent
         $content .= "：\n\n";
 
         // 使用相對編號（從 offset + 1 開始）
+        // 使用 array_values() 確保索引從 0 開始
+        $coursesToShow = array_values($coursesToShow);
+
         foreach ($coursesToShow as $index => $course) {
             // 相對編號 = offset + index + 1
             $relativeNum = $offset + $index + 1;
