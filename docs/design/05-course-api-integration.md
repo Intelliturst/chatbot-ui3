@@ -162,12 +162,12 @@ GET /api/courses?type=unemployed&status=active&limit=10
         "end_date": "2026-01-30",
         "class_time": "週一至週五，上午9:00～下午17:00",
         "total_hours": 300,
-        "enrollment_deadline": "2025-11-18 17:30",
+        "enrollment_deadline": "2025-11-18 17:00",
         "interview_date": "2025-11-18 13:00"
       },
       "fee": {
         "amount": "政府補助100%",
-        "note": "一般國民、未具特定對象身分且參加工/農/漁會勞工保險者，需自行負擔20%"
+        "note": "一般國民(從未加過勞保)、未具特定對象身分且參加工/農/漁會勞工保險者，需自行負擔20%"
       },
       "location": {
         "address": "桃園市中壢區復興路46號12樓（兆豐銀行樓上）"
